@@ -1,8 +1,8 @@
-import edu.iastate.cs.theseguys.Client;
+package edu.iastate.cs.theseguys;
+
 import org.junit.Test;
 
-import static org.junit.Assert.*;
-
+import static org.junit.Assert.assertTrue;
 
 public class ClientTest {
     @Test
