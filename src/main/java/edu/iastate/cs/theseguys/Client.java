@@ -5,7 +5,7 @@ public class Client {
         return true;
     }
 
-    public static void main() {
-        
+    public static void main(String[] args) {
+        System.out.println("I touch myself");
     }
 }
