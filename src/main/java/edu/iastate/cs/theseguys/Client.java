@@ -36,11 +36,29 @@ public class Client implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        repository.save(new Message(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(), "test", new Timestamp(System.currentTimeMillis()), new byte[256]));
-        repository.save(new Message(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(), "test 2", new Timestamp(System.currentTimeMillis()), new byte[256]));
-        repository.save(new Message(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(), "test 3", new Timestamp(System.currentTimeMillis()), new byte[256]));
+        UUID userOne = UUID.randomUUID();
+        UUID userTwo = UUID.randomUUID();
+
+        UUID rootId = UUID.randomUUID();
+
+        Message root = new Message(rootId, UUID.randomUUID(), rootId, rootId, "Welcome to DILC", new Timestamp(System.currentTimeMillis()), new byte[256]);
+        Message messageA = new Message(UUID.randomUUID(), userOne, root.getId(), root.getId(), "test", new Timestamp(System.currentTimeMillis()), new byte[256]);
+        Message messageB = new Message(UUID.randomUUID(), userTwo, root.getId(), messageA.getId(), "test 2", new Timestamp(System.currentTimeMillis()), new byte[256]);
+        Message messageC = new Message(UUID.randomUUID(), userOne, messageA.getId(), messageB.getId(), "test 3", new Timestamp(System.currentTimeMillis()), new byte[256]);
+
+        repository.save(root);
+        repository.save(messageA);
+        repository.save(messageB);
+        repository.save(messageC);
+
+        log.info("Messages currently in database: ");
         for (Message message : repository.findAll()) {
-            log.info(message.getMessageBody());
+            log.info(message.toString());
+        }
+
+        log.info("Messages currently in database for user '" + userOne + "':");
+        for (Message message : repository.findByUserId(userOne)) {
+            log.info(message.toString());
         }
 
     }

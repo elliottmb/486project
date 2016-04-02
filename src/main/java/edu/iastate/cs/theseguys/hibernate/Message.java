@@ -43,6 +43,18 @@ public class Message {
         this.signature = signature;
     }
 
+    @Override
+    public String toString() {
+        return String.format(
+                "Message[id='%s', userId='%s', fatherId='%s', motherId='%s', body='%s']",
+                id,
+                userId,
+                fatherId,
+                motherId,
+                messageBody
+        );
+    }
+
     public UUID getId() {
         return id;
     }
@@ -98,4 +110,6 @@ public class Message {
     public void setSignature(byte[] signature) {
         this.signature = signature;
     }
+
+
 }
