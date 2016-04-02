@@ -15,6 +15,8 @@ dependencies {
     compile 'org.springframework.amqp:spring-rabbit:1.5.5.RELEASE'
     compile 'org.hibernate:hibernate-core:5.1.0.Final'
     compile 'org.xerial:sqlite-jdbc:3.8.11.2'
+    compile 'com.h2database:h2:1.4.191'
+
 
     // Declare the dependency for your favourite test framework you want to use in your tests.
     // TestNG is also supported by the Gradle Test task. Just change the
