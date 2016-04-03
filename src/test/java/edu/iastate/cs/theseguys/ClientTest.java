@@ -8,6 +8,6 @@ public class ClientTest {
     @Test
     public void testSomeLibraryMethod() {
         Client classUnderTest = new Client();
-        assertTrue("someLibraryMethod should return 'true'", classUnderTest.someLibraryMethod());
+      
     }
 }
