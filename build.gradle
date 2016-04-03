@@ -29,6 +29,7 @@ dependencies {
     compile("org.springframework.boot:spring-boot-starter-data-jpa")
     compile("org.springframework.amqp:spring-rabbit")
     compile("com.h2database:h2")
+    compile("org.xerial:sqlite-jdbc:3.8.11.2")
     testCompile("junit:junit")
 }
 

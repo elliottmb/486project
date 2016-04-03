@@ -21,17 +21,12 @@ public class Client implements CommandLineRunner {
     private static final Logger log = LoggerFactory.getLogger(Client.class);
 
     @Autowired
-    MessageRepository repository;
+    private MessageRepository repository;
 
     public static void main(String[] args) {
         System.out.println("I touch myself");
 
         SpringApplication.run(Client.class, args);
-    }
-
-    public boolean someLibraryMethod() {
-
-        return true;
     }
 
     @Override
