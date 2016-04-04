@@ -2,6 +2,15 @@ package edu.iastate.cs.theseguys;
 
 import edu.iastate.cs.theseguys.database.MessageRepository;
 import edu.iastate.cs.theseguys.hibernate.Message;
+import org.apache.mina.core.RuntimeIoException;
+import org.apache.mina.core.future.ConnectFuture;
+import org.apache.mina.core.service.IoConnector;
+import org.apache.mina.core.session.IoSession;
+import org.apache.mina.filter.codec.ProtocolCodecFilter;
+import org.apache.mina.filter.codec.serialization.ObjectSerializationCodecFactory;
+import org.apache.mina.filter.logging.LoggingFilter;
+import org.apache.mina.handler.demux.DemuxingIoHandler;
+import org.apache.mina.transport.socket.nio.NioSocketConnector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +20,7 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
+import java.net.InetSocketAddress;
 import java.sql.Timestamp;
 import java.util.UUID;
 
@@ -24,7 +34,7 @@ public class Client implements CommandLineRunner {
     private MessageRepository repository;
 
     public static void main(String[] args) {
-        System.out.println("I touch myself");
+        log.info("I touch myself");
 
         SpringApplication.run(Client.class, args);
     }
@@ -56,5 +66,30 @@ public class Client implements CommandLineRunner {
             log.info(message.toString());
         }
 
+        IoConnector connector = new NioSocketConnector();
+        DemuxingIoHandler demuxIoHandler = new DemuxingIoHandler();
+
+        connector.getFilterChain().addLast("logger", new LoggingFilter());
+        connector.getFilterChain().addLast("codec", new ProtocolCodecFilter(new ObjectSerializationCodecFactory()));
+        connector.setHandler(demuxIoHandler);
+
+        IoSession session;
+        while (true) {
+            try {
+                ConnectFuture future = connector.connect(new InetSocketAddress("localhost", 5050));
+                future.awaitUninterruptibly();
+                session = future.getSession();
+                break;
+            } catch (RuntimeIoException e) {
+                System.err.println("Failed to connect.");
+                e.printStackTrace();
+                Thread.sleep(5000);
+            }
+        }
+
+        // wait until the summation is done
+        session.getCloseFuture().awaitUninterruptibly();
+
+        connector.dispose();
     }
 }
