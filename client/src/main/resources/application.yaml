@@ -1,0 +1,13 @@
+spring:
+  profiles.active: default
+---
+spring:
+  profiles: default
+  datasource:
+    driverClassName: org.h2.Driver
+    url: jdbc:h2:file:./database;DB_CLOSE_ON_EXIT=FALSE
+
+spring.jpa.hibernate.ddl-auto: update
+---
+spring:
+   profiles: unit-test
