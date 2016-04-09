@@ -36,11 +36,11 @@ public class Client implements CommandLineRunner {
     private static final Logger log = LoggerFactory.getLogger(Client.class);
 
     @Autowired
-    private AuthorityClientManager authorityClientManager;
+    private AuthorityManager authorityManager;
     @Autowired
-    private ClientManager distributedClientManager;
+    private ClientManager clientManager;
     @Autowired
-    private ServerManager distributedServerManager;
+    private ServerManager serverManager;
     @Autowired
     private DatabaseManager databaseManager;
 
@@ -80,35 +80,35 @@ public class Client implements CommandLineRunner {
             log.info(message.toString());
         }
 
-        distributedServerManager.run();
+        serverManager.run();
 
-        ConnectFuture firstConnection = distributedClientManager.connect(new InetSocketAddress("localhost", 5050));
-        ConnectFuture secondConnection = distributedClientManager.connect(new InetSocketAddress("localhost", 5050));
+        ConnectFuture firstConnection = clientManager.connect(new InetSocketAddress("localhost", 5050));
+        ConnectFuture secondConnection = clientManager.connect(new InetSocketAddress("localhost", 5050));
 
 
         // We need to wait on at least one connection since we're doing it in the main method here instead of via a handler
         firstConnection.awaitUninterruptibly();
         secondConnection.awaitUninterruptibly();
 
-        distributedClientManager.write(new NewMessageAnnouncement(messageA));
-        distributedClientManager.write(new NewMessageAnnouncement(messageB));
-        distributedClientManager.write(new NewMessageAnnouncement(messageC));
-        distributedClientManager.write(new LatestMessageRequest());
+        clientManager.write(new NewMessageAnnouncement(messageA));
+        clientManager.write(new NewMessageAnnouncement(messageB));
+        clientManager.write(new NewMessageAnnouncement(messageC));
+        clientManager.write(new LatestMessageRequest());
 
-        distributedClientManager.dispose();
-        distributedServerManager.dispose();
+        clientManager.dispose();
+        serverManager.dispose();
     }
 
-    public AuthorityClientManager getAuthorityClientManager() {
-        return authorityClientManager;
+    public AuthorityManager getAuthorityManager() {
+        return authorityManager;
     }
 
-    public ClientManager getDistributedClientManager() {
-        return distributedClientManager;
+    public ClientManager getClientManager() {
+        return clientManager;
     }
 
-    public ServerManager getDistributedServerManager() {
-        return distributedServerManager;
+    public ServerManager getServerManager() {
+        return serverManager;
     }
 
     public DatabaseManager getDatabaseManager() {
