@@ -1,7 +1,12 @@
 package edu.iastate.cs.theseguys;
 
 import edu.iastate.cs.theseguys.database.MessageRepository;
+import edu.iastate.cs.theseguys.distributed.ClientManager;
+import edu.iastate.cs.theseguys.distributed.ServerManager;
 import edu.iastate.cs.theseguys.hibernate.Message;
+import edu.iastate.cs.theseguys.network.LatestMessageRequest;
+import edu.iastate.cs.theseguys.network.NewMessageAnnouncement;
+import org.apache.mina.core.future.ConnectFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +16,7 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
+import java.net.InetSocketAddress;
 import java.sql.Timestamp;
 import java.util.UUID;
 
@@ -32,9 +38,9 @@ public class Client implements CommandLineRunner {
     @Autowired
     private AuthorityClientManager authorityClientManager;
     @Autowired
-    private DistributedClientManager distributedClientManager;
+    private ClientManager distributedClientManager;
     @Autowired
-    private DistributedServerManager distributedServerManager;
+    private ServerManager distributedServerManager;
     @Autowired
     private DatabaseManager databaseManager;
 
@@ -76,9 +82,18 @@ public class Client implements CommandLineRunner {
 
         distributedServerManager.run();
 
-        // Just a test... woo
-        distributedClientManager.connectionTest(messageA, messageB, messageC);
-        distributedClientManager.connectionTest(messageA, messageB, messageC);
+        ConnectFuture firstConnection = distributedClientManager.connect(new InetSocketAddress("localhost", 5050));
+        ConnectFuture secondConnection = distributedClientManager.connect(new InetSocketAddress("localhost", 5050));
+
+
+        // We need to wait on at least one connection since we're doing it in the main method here instead of via a handler
+        firstConnection.awaitUninterruptibly();
+        secondConnection.awaitUninterruptibly();
+
+        distributedClientManager.write(new NewMessageAnnouncement(messageA));
+        distributedClientManager.write(new NewMessageAnnouncement(messageB));
+        distributedClientManager.write(new NewMessageAnnouncement(messageC));
+        distributedClientManager.write(new LatestMessageRequest());
 
         distributedClientManager.dispose();
         distributedServerManager.dispose();
@@ -88,11 +103,11 @@ public class Client implements CommandLineRunner {
         return authorityClientManager;
     }
 
-    public DistributedClientManager getDistributedClientManager() {
+    public ClientManager getDistributedClientManager() {
         return distributedClientManager;
     }
 
-    public DistributedServerManager getDistributedServerManager() {
+    public ServerManager getDistributedServerManager() {
         return distributedServerManager;
     }
 

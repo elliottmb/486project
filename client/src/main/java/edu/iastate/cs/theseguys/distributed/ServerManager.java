@@ -1,5 +1,6 @@
-package edu.iastate.cs.theseguys;
+package edu.iastate.cs.theseguys.distributed;
 
+import edu.iastate.cs.theseguys.AbstractIoServiceManager;
 import edu.iastate.cs.theseguys.client.TestServer;
 import edu.iastate.cs.theseguys.network.LatestMessageRequest;
 import edu.iastate.cs.theseguys.network.LatestMessageRequestHandler;
@@ -9,7 +10,6 @@ import org.apache.mina.core.service.IoAcceptor;
 import org.apache.mina.filter.codec.ProtocolCodecFilter;
 import org.apache.mina.filter.codec.serialization.ObjectSerializationCodecFactory;
 import org.apache.mina.filter.logging.LoggingFilter;
-import org.apache.mina.handler.demux.DemuxingIoHandler;
 import org.apache.mina.transport.socket.nio.NioSocketAcceptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,12 +19,12 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 
 @Component
-public class DistributedServerManager extends AbstractIoServiceManager<IoAcceptor> {
+public class ServerManager extends AbstractIoServiceManager<IoAcceptor> {
     private static final Logger log = LoggerFactory.getLogger(TestServer.class);
     private static int port;
 
-    public DistributedServerManager() {
-        super(new NioSocketAcceptor(), new DemuxingIoHandler());
+    public ServerManager() {
+        super(new NioSocketAcceptor(), new ServerDemuxingIoHandler());
         port = 5050;
     }
 
