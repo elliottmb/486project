@@ -12,6 +12,11 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 
+
+/**
+ * Localhost server to test networking functionality
+ *
+ */
 public class TestServer {
     private static final Logger log = LoggerFactory.getLogger(TestServer.class);
 

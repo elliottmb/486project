@@ -1,8 +1,11 @@
 package edu.iastate.cs.theseguys;
 
 /**
- * Something to commit
- * @author these guys
+ * The CentralAuthority will be responsible for validating Messages
+ * from a Client before it can send that Message to other Clients.
+ * Additionally, maintains connections to all currently operating
+ * Clients, so that new Clients know where to connect to in order to
+ * build up their peer network.  
  *
  */
 public class CentralAuthority {

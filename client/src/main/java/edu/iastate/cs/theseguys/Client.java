@@ -24,6 +24,16 @@ import java.net.InetSocketAddress;
 import java.sql.Timestamp;
 import java.util.UUID;
 
+/**
+ * Client that runs on a user's machine.  Maintains a database
+ * of messages, as well as a list of other Clients that this Client
+ * is connected to, and a list of Clients which are connected to
+ * this Client.  
+ * Also maintains a connection to the Central Authority.
+ * Connected Clients with exchange messages with each other using
+ * the different subclasses of the AbstractMessage class.  
+ *
+ */
 @Configuration
 @ComponentScan
 @EnableAutoConfiguration
