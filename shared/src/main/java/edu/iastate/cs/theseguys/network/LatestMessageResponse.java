@@ -16,6 +16,13 @@ public class LatestMessageResponse extends AbstractMessage {
         this.message = message;
     }
 
+    @Override
+    public String toString() {
+        return "LatestMessageResponse{" +
+                "message=" + message +
+                '}';
+    }
+
     public Message getMessage() {
         return this.message;
     }
