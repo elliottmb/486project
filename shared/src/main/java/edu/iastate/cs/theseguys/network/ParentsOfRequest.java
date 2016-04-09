@@ -2,10 +2,10 @@ package edu.iastate.cs.theseguys.network;
 
 import edu.iastate.cs.theseguys.hibernate.Message;
 
-import java.io.Serializable;
 import java.util.List;
 
-public class ParentsOfRequest implements Serializable {
+public class ParentsOfRequest extends AbstractMessage {
+    private static final long serialVersionUID = -1717707641974014227L;
     private List<Message> children;
 
     public ParentsOfRequest(List<Message> children) {
