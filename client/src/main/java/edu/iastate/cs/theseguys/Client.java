@@ -3,7 +3,6 @@ package edu.iastate.cs.theseguys;
 import edu.iastate.cs.theseguys.database.MessageRepository;
 import edu.iastate.cs.theseguys.hibernate.Message;
 import edu.iastate.cs.theseguys.network.LatestMessageRequest;
-import edu.iastate.cs.theseguys.network.LatestMessageRequestHandler;
 import edu.iastate.cs.theseguys.network.LoggingMessageHandler;
 import edu.iastate.cs.theseguys.network.NewMessageAnnouncement;
 import org.apache.mina.core.RuntimeIoException;
@@ -35,7 +34,14 @@ public class Client implements CommandLineRunner {
     private static final Logger log = LoggerFactory.getLogger(Client.class);
 
     @Autowired
-    private MessageRepository repository;
+    private AuthorityClientManager authorityClientManager;
+    @Autowired
+    private DistributedClientManager distributedClientManager;
+    @Autowired
+    private DistributedServerManager distributedServerManager;
+    @Autowired
+    private DatabaseManager databaseManager;
+
 
     public static void main(String[] args) {
         log.info("I touch myself");
@@ -49,6 +55,8 @@ public class Client implements CommandLineRunner {
         UUID userTwo = UUID.randomUUID();
 
         UUID rootId = UUID.randomUUID();
+
+        MessageRepository repository = this.getDatabaseManager().getRepository();
 
         Message root = new Message(rootId, UUID.randomUUID(), rootId, rootId, "Welcome to DILC", new Timestamp(System.currentTimeMillis()), new byte[256]);
         Message messageA = new Message(UUID.randomUUID(), userOne, root.getId(), root.getId(), "test", new Timestamp(System.currentTimeMillis()), new byte[256]);
@@ -104,5 +112,21 @@ public class Client implements CommandLineRunner {
         session.getCloseFuture().awaitUninterruptibly();
 
         connector.dispose();
+    }
+
+    public AuthorityClientManager getAuthorityClientManager() {
+        return authorityClientManager;
+    }
+
+    public DistributedClientManager getDistributedClientManager() {
+        return distributedClientManager;
+    }
+
+    public DistributedServerManager getDistributedServerManager() {
+        return distributedServerManager;
+    }
+
+    public DatabaseManager getDatabaseManager() {
+        return databaseManager;
     }
 }
