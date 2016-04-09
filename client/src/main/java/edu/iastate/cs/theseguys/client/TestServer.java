@@ -1,5 +1,9 @@
 package edu.iastate.cs.theseguys.client;
 
+import edu.iastate.cs.theseguys.network.LatestMessageRequest;
+import edu.iastate.cs.theseguys.network.LatestMessageRequestHandler;
+import edu.iastate.cs.theseguys.network.LoggingMessageHandler;
+import edu.iastate.cs.theseguys.network.NewMessageAnnouncement;
 import org.apache.mina.core.service.IoAcceptor;
 import org.apache.mina.filter.codec.ProtocolCodecFilter;
 import org.apache.mina.filter.codec.serialization.ObjectSerializationCodecFactory;
@@ -22,6 +26,9 @@ public class TestServer {
         IoAcceptor acceptor = new NioSocketAcceptor();
         DemuxingIoHandler demuxIoHandler = new DemuxingIoHandler();
 
+        demuxIoHandler.addReceivedMessageHandler(LatestMessageRequest.class, new LatestMessageRequestHandler());
+        demuxIoHandler.addReceivedMessageHandler(NewMessageAnnouncement.class, new LoggingMessageHandler());
+
         acceptor.getFilterChain().addLast("logger", new LoggingFilter());
         acceptor.getFilterChain().addLast("codec", new ProtocolCodecFilter(new ObjectSerializationCodecFactory()));
         acceptor.setHandler(demuxIoHandler);
@@ -35,7 +42,7 @@ public class TestServer {
         }
 
         while (acceptor.getManagedSessionCount() > 0) {
-            log.info("One ore more clients connected");
+            log.info("One or more clients connected");
             log.info("R: " + acceptor.getStatistics().getReadBytesThroughput() +
                     ", W: " + acceptor.getStatistics().getWrittenBytesThroughput());
             Thread.sleep(3000);
