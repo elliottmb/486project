@@ -5,6 +5,10 @@ import org.apache.mina.handler.demux.MessageHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Primarily for testing
+ *
+ */
 public class LoggingMessageHandler implements MessageHandler<AbstractMessage> {
     private static final Logger log = LoggerFactory.getLogger(LoggingMessageHandler.class);
 
