@@ -2,6 +2,10 @@ package edu.iastate.cs.theseguys;
 
 import edu.iastate.cs.theseguys.database.MessageRepository;
 import edu.iastate.cs.theseguys.hibernate.Message;
+import edu.iastate.cs.theseguys.network.LatestMessageRequest;
+import edu.iastate.cs.theseguys.network.LatestMessageRequestHandler;
+import edu.iastate.cs.theseguys.network.LoggingMessageHandler;
+import edu.iastate.cs.theseguys.network.NewMessageAnnouncement;
 import org.apache.mina.core.RuntimeIoException;
 import org.apache.mina.core.future.ConnectFuture;
 import org.apache.mina.core.service.IoConnector;
@@ -69,6 +73,10 @@ public class Client implements CommandLineRunner {
         IoConnector connector = new NioSocketConnector();
         DemuxingIoHandler demuxIoHandler = new DemuxingIoHandler();
 
+
+        demuxIoHandler.addSentMessageHandler(LatestMessageRequest.class, new LoggingMessageHandler());
+        demuxIoHandler.addSentMessageHandler(NewMessageAnnouncement.class, new LoggingMessageHandler());
+
         connector.getFilterChain().addLast("logger", new LoggingFilter());
         connector.getFilterChain().addLast("codec", new ProtocolCodecFilter(new ObjectSerializationCodecFactory()));
         connector.setHandler(demuxIoHandler);
@@ -86,6 +94,11 @@ public class Client implements CommandLineRunner {
                 Thread.sleep(5000);
             }
         }
+
+        session.write(new LatestMessageRequest());
+        session.write(new NewMessageAnnouncement(messageA));
+        session.write(new NewMessageAnnouncement(messageB));
+        session.write(new NewMessageAnnouncement(messageC));
 
         // wait until the summation is done
         session.getCloseFuture().awaitUninterruptibly();
