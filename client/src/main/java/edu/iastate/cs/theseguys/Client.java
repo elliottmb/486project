@@ -2,18 +2,6 @@ package edu.iastate.cs.theseguys;
 
 import edu.iastate.cs.theseguys.database.MessageRepository;
 import edu.iastate.cs.theseguys.hibernate.Message;
-import edu.iastate.cs.theseguys.network.LatestMessageRequest;
-import edu.iastate.cs.theseguys.network.LoggingMessageHandler;
-import edu.iastate.cs.theseguys.network.NewMessageAnnouncement;
-import org.apache.mina.core.RuntimeIoException;
-import org.apache.mina.core.future.ConnectFuture;
-import org.apache.mina.core.service.IoConnector;
-import org.apache.mina.core.session.IoSession;
-import org.apache.mina.filter.codec.ProtocolCodecFilter;
-import org.apache.mina.filter.codec.serialization.ObjectSerializationCodecFactory;
-import org.apache.mina.filter.logging.LoggingFilter;
-import org.apache.mina.handler.demux.DemuxingIoHandler;
-import org.apache.mina.transport.socket.nio.NioSocketConnector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +11,6 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
-import java.net.InetSocketAddress;
 import java.sql.Timestamp;
 import java.util.UUID;
 
@@ -31,11 +18,10 @@ import java.util.UUID;
  * Client that runs on a user's machine.  Maintains a database
  * of messages, as well as a list of other Clients that this Client
  * is connected to, and a list of Clients which are connected to
- * this Client.  
+ * this Client.
  * Also maintains a connection to the Central Authority.
  * Connected Clients with exchange messages with each other using
- * the different subclasses of the AbstractMessage class.  
- *
+ * the different subclasses of the AbstractMessage class.
  */
 @Configuration
 @ComponentScan
@@ -88,40 +74,14 @@ public class Client implements CommandLineRunner {
             log.info(message.toString());
         }
 
-        IoConnector connector = new NioSocketConnector();
-        DemuxingIoHandler demuxIoHandler = new DemuxingIoHandler();
+        distributedServerManager.run();
 
+        // Just a test... woo
+        distributedClientManager.connectionTest(messageA, messageB, messageC);
+        distributedClientManager.connectionTest(messageA, messageB, messageC);
 
-        demuxIoHandler.addSentMessageHandler(LatestMessageRequest.class, new LoggingMessageHandler());
-        demuxIoHandler.addSentMessageHandler(NewMessageAnnouncement.class, new LoggingMessageHandler());
-
-        connector.getFilterChain().addLast("logger", new LoggingFilter());
-        connector.getFilterChain().addLast("codec", new ProtocolCodecFilter(new ObjectSerializationCodecFactory()));
-        connector.setHandler(demuxIoHandler);
-
-        IoSession session;
-        while (true) {
-            try {
-                ConnectFuture future = connector.connect(new InetSocketAddress("localhost", 5050));
-                future.awaitUninterruptibly();
-                session = future.getSession();
-                break;
-            } catch (RuntimeIoException e) {
-                System.err.println("Failed to connect.");
-                e.printStackTrace();
-                Thread.sleep(5000);
-            }
-        }
-
-        session.write(new LatestMessageRequest());
-        session.write(new NewMessageAnnouncement(messageA));
-        session.write(new NewMessageAnnouncement(messageB));
-        session.write(new NewMessageAnnouncement(messageC));
-
-        // wait until the summation is done
-        session.getCloseFuture().awaitUninterruptibly();
-
-        connector.dispose();
+        distributedClientManager.dispose();
+        distributedServerManager.dispose();
     }
 
     public AuthorityClientManager getAuthorityClientManager() {

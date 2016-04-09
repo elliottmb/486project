@@ -1,8 +1,10 @@
 package edu.iastate.cs.theseguys;
 
-import java.io.IOException;
-import java.net.InetSocketAddress;
-
+import edu.iastate.cs.theseguys.client.TestServer;
+import edu.iastate.cs.theseguys.network.LatestMessageRequest;
+import edu.iastate.cs.theseguys.network.LatestMessageRequestHandler;
+import edu.iastate.cs.theseguys.network.LoggingMessageHandler;
+import edu.iastate.cs.theseguys.network.NewMessageAnnouncement;
 import org.apache.mina.core.service.IoAcceptor;
 import org.apache.mina.filter.codec.ProtocolCodecFilter;
 import org.apache.mina.filter.codec.serialization.ObjectSerializationCodecFactory;
@@ -13,61 +15,53 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import edu.iastate.cs.theseguys.client.TestServer;
-import edu.iastate.cs.theseguys.network.LatestMessageRequest;
-import edu.iastate.cs.theseguys.network.LatestMessageRequestHandler;
-import edu.iastate.cs.theseguys.network.LoggingMessageHandler;
-import edu.iastate.cs.theseguys.network.NewMessageAnnouncement;
+import java.io.IOException;
+import java.net.InetSocketAddress;
 
 @Component
-public class DistributedServerManager {
+public class DistributedServerManager extends AbstractIoServiceManager<IoAcceptor> {
     private static final Logger log = LoggerFactory.getLogger(TestServer.class);
-    private static IoAcceptor acceptor;
-    private static DemuxingIoHandler demuxIoHandler;
     private static int port;
-    
+
     public DistributedServerManager() {
-    	acceptor = new NioSocketAcceptor();
-    	demuxIoHandler = new DemuxingIoHandler();
-    	port = 5050;
+        super(new NioSocketAcceptor(), new DemuxingIoHandler());
+        port = 5050;
     }
-    
-    
+
     public void run() throws IOException, InterruptedException {
-		prepareAcceptor(port);
-		awaitConnections();
-	
-	    acceptor.dispose();
+        prepareAcceptor(port);
+        //awaitConnections();
+
+        //acceptor.dispose();
     }
-    
-    private static void prepareAcceptor(int port) throws IOException {
-	    demuxIoHandler.addReceivedMessageHandler(LatestMessageRequest.class, new LatestMessageRequestHandler());
-	    demuxIoHandler.addReceivedMessageHandler(NewMessageAnnouncement.class, new LoggingMessageHandler());
-	
-	    acceptor.getFilterChain().addLast("logger", new LoggingFilter());
-	    acceptor.getFilterChain().addLast("codec", new ProtocolCodecFilter(new ObjectSerializationCodecFactory()));
-	    acceptor.setHandler(demuxIoHandler);
-	    acceptor.bind(new InetSocketAddress(port));
+
+    private void prepareAcceptor(int port) throws IOException {
+        getDemuxingIoHandler().addReceivedMessageHandler(LatestMessageRequest.class, new LatestMessageRequestHandler());
+        getDemuxingIoHandler().addReceivedMessageHandler(NewMessageAnnouncement.class, new LoggingMessageHandler());
+
+        getService().getFilterChain().addLast("logger", new LoggingFilter());
+        getService().getFilterChain().addLast("codec", new ProtocolCodecFilter(new ObjectSerializationCodecFactory()));
+        getService().bind(new InetSocketAddress(port));
     }
-    
-    private static void awaitConnections() throws InterruptedException {
-	    while (acceptor.getManagedSessionCount() == 0) {
-	        log.info("No clients connected");
-	        log.info("R: " + acceptor.getStatistics().getReadBytesThroughput() +
-	                ", W: " + acceptor.getStatistics().getWrittenBytesThroughput());
-	        Thread.sleep(3000);
-	    }
-	
-	    while (acceptor.getManagedSessionCount() > 0) {
-	        log.info("One or more clients connected");
-	        log.info("R: " + acceptor.getStatistics().getReadBytesThroughput() +
-	                ", W: " + acceptor.getStatistics().getWrittenBytesThroughput());
-	        Thread.sleep(3000);
-	    }
-	
-	    log.info("No clients connected, cleaning up this test server. Bye!");
+
+    private void awaitConnections() throws InterruptedException {
+        while (getService().getManagedSessionCount() == 0) {
+            log.info("No clients connected");
+            log.info("R: " + getService().getStatistics().getReadBytesThroughput() +
+                    ", W: " + getService().getStatistics().getWrittenBytesThroughput());
+            Thread.sleep(3000);
+        }
+
+        while (getService().getManagedSessionCount() > 0) {
+            log.info("One or more clients connected");
+            log.info("R: " + getService().getStatistics().getReadBytesThroughput() +
+                    ", W: " + getService().getStatistics().getWrittenBytesThroughput());
+            Thread.sleep(3000);
+        }
+
+        log.info("No clients connected, cleaning up this test server. Bye!");
     }
 
 }
-	
+
 
