@@ -2,7 +2,7 @@ package edu.iastate.cs.theseguys.network;
 
 import java.io.Serializable;
 
-public class LoginRequest implements Serializable {
+public class LoginRequest extends AbstractMessage {
 	private static final long serialVersionUID = -100458915682459958L;
 	private String username;
 	private String password;

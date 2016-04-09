@@ -17,7 +17,8 @@ public class AuthorityClientManager {
 	
 	private IoAcceptor acceptor;
 	private CustomDemuxingIoHandler ioHandler;
-	private ConcurrentMap<IoSession, Integer> connectedClients;
+	//iosession to port.  iosession contains client's ip, but we need to also store the port that the client listens for other clients
+	private ConcurrentMap<IoSession, Integer> connectedClients;  
 	
 	public AuthorityClientManager()
 	{

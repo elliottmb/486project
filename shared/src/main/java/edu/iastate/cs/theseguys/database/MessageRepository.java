@@ -8,6 +8,10 @@ import java.sql.Timestamp;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * Interface to access the Client's database.  
+ *
+ */
 @Repository
 public interface MessageRepository extends CrudRepository<Message, UUID> {
 
