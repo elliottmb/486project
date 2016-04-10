@@ -37,7 +37,7 @@ public class TestServer {
         acceptor.getFilterChain().addLast("logger", new LoggingFilter());
         acceptor.getFilterChain().addLast("codec", new ProtocolCodecFilter(new ObjectSerializationCodecFactory()));
         acceptor.setHandler(demuxIoHandler);
-        acceptor.bind(new InetSocketAddress(5050));
+        acceptor.bind(new InetSocketAddress(5050));  //start accepting connections with this call
 
         while (acceptor.getManagedSessionCount() == 0) {
             log.info("No clients connected");

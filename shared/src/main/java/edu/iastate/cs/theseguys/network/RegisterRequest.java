@@ -1,18 +1,16 @@
 package edu.iastate.cs.theseguys.network;
 
 
-public class LoginRequest extends AbstractMessage {
-	private static final long serialVersionUID = -100458915682459958L;
+public class RegisterRequest extends AbstractMessage {
+	private static final long serialVersionUID = -7803515103821448698L;
 	private String username;
 	private String password;
-	private int port;
 	
 	
-	public LoginRequest(String username, String password, int port)
+	public RegisterRequest(String username, String password)
 	{
 		this.username = username;
 		this.password = password;
-		this.port = port;
 	}
 	
 	public String getUsername()
@@ -23,11 +21,6 @@ public class LoginRequest extends AbstractMessage {
 	public String getPassword()
 	{
 		return password;
-	}
-	
-	public int getPort()
-	{
-		return port;
 	}
 
 }

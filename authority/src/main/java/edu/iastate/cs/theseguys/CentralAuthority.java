@@ -1,21 +1,13 @@
 package edu.iastate.cs.theseguys;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
 
-import org.apache.mina.core.service.IoAcceptor;
-import org.apache.mina.filter.codec.ProtocolCodecFilter;
-import org.apache.mina.filter.codec.serialization.ObjectSerializationCodecFactory;
-import org.apache.mina.filter.logging.LoggingFilter;
-import org.apache.mina.handler.demux.DemuxingIoHandler;
-import org.apache.mina.transport.socket.nio.NioSocketAcceptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
-import edu.iastate.cs.theseguys.network.LatestMessageRequest;
-import edu.iastate.cs.theseguys.network.LatestMessageRequestHandler;
-import edu.iastate.cs.theseguys.network.LoggingMessageHandler;
-import edu.iastate.cs.theseguys.network.NewMessageAnnouncement;
+import edu.iastate.cs.theseguys.database.DatabaseManager;
+
 
 /**
  * The CentralAuthority will be responsible for validating Messages
@@ -27,7 +19,11 @@ import edu.iastate.cs.theseguys.network.NewMessageAnnouncement;
 public class CentralAuthority {
 	
 	private static final Logger log = LoggerFactory.getLogger(CentralAuthority.class);
+	
+	@Autowired
 	private static AuthorityClientManager clientManager;
+	
+	
 	
     public static void main(String[] args) throws IOException {
 
