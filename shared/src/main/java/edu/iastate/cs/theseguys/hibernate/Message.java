@@ -1,11 +1,9 @@
 package edu.iastate.cs.theseguys.hibernate;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.io.Serializable;
 import java.sql.Timestamp;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -14,15 +12,21 @@ import java.util.UUID;
 @Entity
 @Table(name = "message")
 public class Message implements Serializable {
+    @OneToMany(fetch = FetchType.EAGER)
+    @JoinColumn(name = "father_id")
+    private Set<Message> leftChildren;
+    @OneToMany(fetch = FetchType.EAGER)
+    @JoinColumn(name = "mother_id")
+    private Set<Message> rightChildren;
+    @ManyToOne
+    private Message father;
+    @ManyToOne
+    private Message mother;
     @Id
     @Column(columnDefinition = "UUID NOT NULL UNIQUE")
     private UUID id;
     @Column(columnDefinition = "UUID NOT NULL")
     private UUID userId;
-    @Column(columnDefinition = "UUID NOT NULL")
-    private UUID fatherId;
-    @Column(columnDefinition = "UUID NOT NULL")
-    private UUID motherId;
     @Column(columnDefinition = "NVARCHAR(255) NOT NULL")
     private String messageBody;
     @Column(columnDefinition = "TIMESTAMP NOT NULL")
@@ -34,11 +38,9 @@ public class Message implements Serializable {
 
     }
 
-    public Message(UUID id, UUID userId, UUID fatherId, UUID motherId, String messageBody, Timestamp timestamp, byte[] signature) {
+    public Message(UUID id, UUID userId, String messageBody, Timestamp timestamp, byte[] signature) {
         this.id = id;
         this.userId = userId;
-        this.fatherId = fatherId;
-        this.motherId = motherId;
         this.messageBody = messageBody;
         this.timestamp = timestamp;
         this.signature = signature;
@@ -52,8 +54,8 @@ public class Message implements Serializable {
                 userId,
                 timestamp,
                 messageBody,
-                fatherId,
-                motherId
+                father.getId(),
+                mother.getId()
         );
     }
 
@@ -73,20 +75,20 @@ public class Message implements Serializable {
         this.userId = userId;
     }
 
-    public UUID getFatherId() {
-        return fatherId;
+    public Message getFather() {
+        return father;
     }
 
-    public void setFatherId(UUID fatherId) {
-        this.fatherId = fatherId;
+    public void setFather(Message father) {
+        this.father = father;
     }
 
-    public UUID getMotherId() {
-        return motherId;
+    public Message getMother() {
+        return mother;
     }
 
-    public void setMotherId(UUID motherId) {
-        this.motherId = motherId;
+    public void setMother(Message mother) {
+        this.mother = mother;
     }
 
     public String getMessageBody() {
@@ -113,5 +115,19 @@ public class Message implements Serializable {
         this.signature = signature;
     }
 
+    public Set<Message> getLeftChildren() {
+        return leftChildren;
+    }
 
+    public void setLeftChildren(Set<Message> leftChildren) {
+        this.leftChildren = leftChildren;
+    }
+
+    public Set<Message> getRightChildren() {
+        return rightChildren;
+    }
+
+    public void setRightChildren(Set<Message> rightChildren) {
+        this.rightChildren = rightChildren;
+    }
 }
