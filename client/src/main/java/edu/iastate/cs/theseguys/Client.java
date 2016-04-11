@@ -58,10 +58,33 @@ public class Client implements CommandLineRunner {
 
         MessageRepository repository = this.getDatabaseManager().getRepository();
 
-        Message root = new Message(rootId, UUID.randomUUID(), rootId, rootId, "Welcome to DILC", new Timestamp(System.currentTimeMillis()), new byte[256]);
-        Message messageA = new Message(UUID.randomUUID(), userOne, root.getId(), root.getId(), "test", new Timestamp(System.currentTimeMillis()), new byte[256]);
-        Message messageB = new Message(UUID.randomUUID(), userTwo, root.getId(), messageA.getId(), "test 2", new Timestamp(System.currentTimeMillis()), new byte[256]);
-        Message messageC = new Message(UUID.randomUUID(), userOne, messageA.getId(), messageB.getId(), "test 3", new Timestamp(System.currentTimeMillis()), new byte[256]);
+        Message root = new Message(rootId, UUID.randomUUID(), "Welcome to DILC", new Timestamp(System.currentTimeMillis()), new byte[256]);
+        root.setFather(root);
+        root.setMother(root);
+        try {
+            Thread.sleep(1000);                 //1000 milliseconds is one second.
+        } catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
+        }
+        Message messageA = new Message(UUID.randomUUID(), userOne, "test", new Timestamp(System.currentTimeMillis()), new byte[256]);
+        messageA.setFather(root);
+        messageA.setMother(root);
+        try {
+            Thread.sleep(1000);                 //1000 milliseconds is one second.
+        } catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
+        }
+        Message messageB = new Message(UUID.randomUUID(), userTwo, "test 2", new Timestamp(System.currentTimeMillis()), new byte[256]);
+        messageB.setFather(root);
+        messageB.setMother(messageA);
+        try {
+            Thread.sleep(1000);                 //1000 milliseconds is one second.
+        } catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
+        }
+        Message messageC = new Message(UUID.randomUUID(), userOne, "test 3", new Timestamp(System.currentTimeMillis()), new byte[256]);
+        messageC.setFather(messageA);
+        messageC.setMother(messageB);
 
         repository.save(root);
         repository.save(messageA);
@@ -92,6 +115,25 @@ public class Client implements CommandLineRunner {
         //clientManager.write(new NewMessageAnnouncement(messageB));
         //clientManager.write(new NewMessageAnnouncement(messageC));
         //clientManager.write(new LatestMessageRequest());
+
+        Message oldest = databaseManager.getRepository().findFirstByOrderByTimestampAsc();
+
+        log.info("---- Oldest ----");
+        log.info("Self: " + oldest.toString());
+        log.info("Father: " + oldest.getFather().toString());
+        log.info("Mother: " + oldest.getMother().toString());
+        log.info("Left Children: " + oldest.getLeftChildren().toString());
+        log.info("Right Children: " + oldest.getRightChildren().toString());
+
+
+        Message youngest = databaseManager.getRepository().findFirstByOrderByTimestampDesc();
+
+        log.info("---- Youngest ----");
+        log.info("Self: " + youngest.toString());
+        log.info("Father: " + youngest.getFather().toString());
+        log.info("Mother: " + youngest.getMother().toString());
+        log.info("Left Children: " + youngest.getLeftChildren().toString());
+        log.info("Right Children: " + youngest.getRightChildren().toString());
 
         clientManager.dispose();
         serverManager.dispose();
