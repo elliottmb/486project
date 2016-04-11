@@ -1,35 +1,47 @@
 package edu.iastate.cs.theseguys.distributed;
 
 import edu.iastate.cs.theseguys.AbstractIoAcceptorManager;
-import edu.iastate.cs.theseguys.client.TestServer;
-import edu.iastate.cs.theseguys.network.LatestMessageRequest;
-import edu.iastate.cs.theseguys.network.LatestMessageRequestHandler;
-import edu.iastate.cs.theseguys.network.LoggingMessageHandler;
-import edu.iastate.cs.theseguys.network.NewMessageAnnouncement;
+import edu.iastate.cs.theseguys.Client;
+import edu.iastate.cs.theseguys.network.*;
 import org.apache.mina.filter.codec.ProtocolCodecFilter;
 import org.apache.mina.filter.codec.serialization.ObjectSerializationCodecFactory;
 import org.apache.mina.filter.logging.LoggingFilter;
 import org.apache.mina.transport.socket.nio.NioSocketAcceptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 
 @Component
 public class ServerManager extends AbstractIoAcceptorManager {
-    private static final Logger log = LoggerFactory.getLogger(TestServer.class);
+    private static final Logger log = LoggerFactory.getLogger(ServerManager.class);
     private static int port;
+
+    @Autowired
+    private Client client;
+    @Autowired
+    private LatestMessageRequestHandler latestMessageRequestHandler;
+    @Autowired
+    private LoggingMessageHandler loggingMessageHandler;
 
     public ServerManager() {
         super(new NioSocketAcceptor(), new ServerDemuxingIoHandler());
-        getDemuxingIoHandler().addReceivedMessageHandler(LatestMessageRequest.class, new LatestMessageRequestHandler());
-        getDemuxingIoHandler().addReceivedMessageHandler(NewMessageAnnouncement.class, new LoggingMessageHandler());
+
+        port = 5050;
+    }
+
+    @PostConstruct
+    private void prepareHandlers() {
+        getIoHandler().addReceivedMessageHandler(LatestMessageRequest.class, latestMessageRequestHandler);
+        getIoHandler().addReceivedMessageHandler(NewMessageAnnouncement.class, loggingMessageHandler);
+        getIoHandler().addSentMessageHandler(LatestMessageResponse.class, loggingMessageHandler);
 
         getService().getFilterChain().addLast("logger", new LoggingFilter());
         getService().getFilterChain().addLast("codec", new ProtocolCodecFilter(new ObjectSerializationCodecFactory()));
-        port = 5050;
     }
 
     public void run() throws IOException, InterruptedException {

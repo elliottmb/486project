@@ -4,8 +4,6 @@ import edu.iastate.cs.theseguys.database.MessageRepository;
 import edu.iastate.cs.theseguys.distributed.ClientManager;
 import edu.iastate.cs.theseguys.distributed.ServerManager;
 import edu.iastate.cs.theseguys.hibernate.Message;
-import edu.iastate.cs.theseguys.network.LatestMessageRequest;
-import edu.iastate.cs.theseguys.network.NewMessageAnnouncement;
 import org.apache.mina.core.future.ConnectFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -70,30 +68,30 @@ public class Client implements CommandLineRunner {
         repository.save(messageB);
         repository.save(messageC);
 
-        log.info("Messages currently in database: ");
+        //log.info("Messages currently in database: ");
         for (Message message : repository.findAll()) {
-            log.info(message.toString());
+            //log.info(message.toString());
         }
 
-        log.info("Messages currently in database for user '" + userOne + "':");
+        // log.info("Messages currently in database for user '" + userOne + "':");
         for (Message message : repository.findByUserId(userOne)) {
-            log.info(message.toString());
+            //log.info(message.toString());
         }
 
         serverManager.run();
 
         ConnectFuture firstConnection = clientManager.connect(new InetSocketAddress("localhost", 5050));
-        ConnectFuture secondConnection = clientManager.connect(new InetSocketAddress("localhost", 5050));
+        //ConnectFuture secondConnection = clientManager.connect(new InetSocketAddress("localhost", 5050));
 
 
         // We need to wait on at least one connection since we're doing it in the main method here instead of via a handler
         firstConnection.awaitUninterruptibly();
-        secondConnection.awaitUninterruptibly();
+        // secondConnection.awaitUninterruptibly();
 
-        clientManager.write(new NewMessageAnnouncement(messageA));
-        clientManager.write(new NewMessageAnnouncement(messageB));
-        clientManager.write(new NewMessageAnnouncement(messageC));
-        clientManager.write(new LatestMessageRequest());
+        //clientManager.write(new NewMessageAnnouncement(messageA));
+        //clientManager.write(new NewMessageAnnouncement(messageB));
+        //clientManager.write(new NewMessageAnnouncement(messageC));
+        //clientManager.write(new LatestMessageRequest());
 
         clientManager.dispose();
         serverManager.dispose();

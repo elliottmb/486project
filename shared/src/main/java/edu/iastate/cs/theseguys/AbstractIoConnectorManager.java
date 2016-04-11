@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
 
-public abstract class AbstractIoConnectorManager extends AbstractIoServiceManager<IoConnector> {
+public abstract class AbstractIoConnectorManager extends AbstractIoServiceManager<IoConnector, DemuxingIoHandler> {
     private static final Logger log = LoggerFactory.getLogger(AbstractIoConnectorManager.class);
 
     public AbstractIoConnectorManager(IoConnector service, DemuxingIoHandler demuxingIoHandler) {

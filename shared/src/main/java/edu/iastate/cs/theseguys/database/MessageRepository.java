@@ -14,4 +14,7 @@ public interface MessageRepository extends CrudRepository<Message, UUID> {
     List<Message> findByUserId(UUID uuid);
 
     List<Message> findByTimestamp(Timestamp timestamp);
+
+    Message findFirstByOrderByTimestampAsc();
+    Message findFirstByOrderByTimestampDesc();
 }

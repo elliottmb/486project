@@ -47,12 +47,13 @@ public class Message implements Serializable {
     @Override
     public String toString() {
         return String.format(
-                "Message[id='%s', userId='%s', fatherId='%s', motherId='%s', body='%s']",
+                "Message[id='%s', userId='%s', timestamp='%s', body='%s', fatherId='%s', motherId='%s']",
                 id,
                 userId,
+                timestamp,
+                messageBody,
                 fatherId,
-                motherId,
-                messageBody
+                motherId
         );
     }
 
