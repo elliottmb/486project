@@ -1,4 +1,4 @@
-package edu.iastate.cs.theseguys.hibernate;
+package edu.iastate.cs.theseguys.database;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -11,17 +11,17 @@ import java.util.UUID;
  */
 @Entity
 @Table(name = "message")
-public class Message implements Serializable {
+public class MessageRecord implements Serializable {
     @OneToMany(fetch = FetchType.EAGER)
     @JoinColumn(name = "father_id")
-    private Set<Message> leftChildren;
+    private Set<MessageRecord> leftChildren;
     @OneToMany(fetch = FetchType.EAGER)
     @JoinColumn(name = "mother_id")
-    private Set<Message> rightChildren;
+    private Set<MessageRecord> rightChildren;
     @ManyToOne
-    private Message father;
+    private MessageRecord father;
     @ManyToOne
-    private Message mother;
+    private MessageRecord mother;
     @Id
     @Column(columnDefinition = "UUID NOT NULL UNIQUE")
     private UUID id;
@@ -34,11 +34,11 @@ public class Message implements Serializable {
     @Column(columnDefinition = "BLOB NOT NULL")
     private byte[] signature;
 
-    public Message() {
+    public MessageRecord() {
 
     }
 
-    public Message(UUID id, UUID userId, String messageBody, Timestamp timestamp, byte[] signature) {
+    public MessageRecord(UUID id, UUID userId, String messageBody, Timestamp timestamp, byte[] signature) {
         this.id = id;
         this.userId = userId;
         this.messageBody = messageBody;
@@ -49,7 +49,7 @@ public class Message implements Serializable {
     @Override
     public String toString() {
         return String.format(
-                "Message[id='%s', userId='%s', timestamp='%s', body='%s', fatherId='%s', motherId='%s']",
+                "MessageRecord[id='%s', userId='%s', timestamp='%s', body='%s', fatherId='%s', motherId='%s']",
                 id,
                 userId,
                 timestamp,
@@ -75,19 +75,19 @@ public class Message implements Serializable {
         this.userId = userId;
     }
 
-    public Message getFather() {
+    public MessageRecord getFather() {
         return father;
     }
 
-    public void setFather(Message father) {
+    public void setFather(MessageRecord father) {
         this.father = father;
     }
 
-    public Message getMother() {
+    public MessageRecord getMother() {
         return mother;
     }
 
-    public void setMother(Message mother) {
+    public void setMother(MessageRecord mother) {
         this.mother = mother;
     }
 
@@ -115,19 +115,19 @@ public class Message implements Serializable {
         this.signature = signature;
     }
 
-    public Set<Message> getLeftChildren() {
+    public Set<MessageRecord> getLeftChildren() {
         return leftChildren;
     }
 
-    public void setLeftChildren(Set<Message> leftChildren) {
+    public void setLeftChildren(Set<MessageRecord> leftChildren) {
         this.leftChildren = leftChildren;
     }
 
-    public Set<Message> getRightChildren() {
+    public Set<MessageRecord> getRightChildren() {
         return rightChildren;
     }
 
-    public void setRightChildren(Set<Message> rightChildren) {
+    public void setRightChildren(Set<MessageRecord> rightChildren) {
         this.rightChildren = rightChildren;
     }
 }

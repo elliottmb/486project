@@ -1,7 +1,7 @@
 package edu.iastate.cs.theseguys.network;
 
 import edu.iastate.cs.theseguys.DatabaseManager;
-import edu.iastate.cs.theseguys.hibernate.Message;
+import edu.iastate.cs.theseguys.database.MessageRecord;
 import org.apache.mina.core.session.IoSession;
 import org.apache.mina.handler.demux.MessageHandler;
 import org.slf4j.Logger;
@@ -13,16 +13,18 @@ import org.springframework.stereotype.Component;
 public class LatestMessageRequestHandler implements MessageHandler<LatestMessageRequest> {
     private static final Logger log = LoggerFactory.getLogger(LatestMessageRequestHandler.class);
     @Autowired
-    DatabaseManager databaseManager;
+    private DatabaseManager databaseManager;
 
 
     @Override
     public void handleMessage(IoSession session, LatestMessageRequest message) throws Exception {
         log.info("Received " + message.toString());
 
-        Message latestMessage = databaseManager.getLatestMessage();
+        MessageRecord latestMessage = databaseManager.getLatestMessage();
 
-        session.write(new LatestMessageResponse(latestMessage));
+        MessageDatagram messageDatagram = new MessageDatagram(latestMessage);
+
+        session.write(new LatestMessageResponse(messageDatagram));
     }
 }
 

@@ -1,9 +1,9 @@
 package edu.iastate.cs.theseguys;
 
+import edu.iastate.cs.theseguys.database.MessageRecord;
 import edu.iastate.cs.theseguys.database.MessageRepository;
 import edu.iastate.cs.theseguys.distributed.ClientManager;
 import edu.iastate.cs.theseguys.distributed.ServerManager;
-import edu.iastate.cs.theseguys.hibernate.Message;
 import org.apache.mina.core.future.ConnectFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,7 +58,7 @@ public class Client implements CommandLineRunner {
 
         MessageRepository repository = this.getDatabaseManager().getRepository();
 
-        Message root = new Message(rootId, UUID.randomUUID(), "Welcome to DILC", new Timestamp(System.currentTimeMillis()), new byte[256]);
+        MessageRecord root = new MessageRecord(rootId, UUID.randomUUID(), "Welcome to DILC", new Timestamp(System.currentTimeMillis()), new byte[256]);
         root.setFather(root);
         root.setMother(root);
         try {
@@ -66,7 +66,7 @@ public class Client implements CommandLineRunner {
         } catch (InterruptedException ex) {
             Thread.currentThread().interrupt();
         }
-        Message messageA = new Message(UUID.randomUUID(), userOne, "test", new Timestamp(System.currentTimeMillis()), new byte[256]);
+        MessageRecord messageA = new MessageRecord(UUID.randomUUID(), userOne, "test", new Timestamp(System.currentTimeMillis()), new byte[256]);
         messageA.setFather(root);
         messageA.setMother(root);
         try {
@@ -74,7 +74,7 @@ public class Client implements CommandLineRunner {
         } catch (InterruptedException ex) {
             Thread.currentThread().interrupt();
         }
-        Message messageB = new Message(UUID.randomUUID(), userTwo, "test 2", new Timestamp(System.currentTimeMillis()), new byte[256]);
+        MessageRecord messageB = new MessageRecord(UUID.randomUUID(), userTwo, "test 2", new Timestamp(System.currentTimeMillis()), new byte[256]);
         messageB.setFather(root);
         messageB.setMother(messageA);
         try {
@@ -82,7 +82,7 @@ public class Client implements CommandLineRunner {
         } catch (InterruptedException ex) {
             Thread.currentThread().interrupt();
         }
-        Message messageC = new Message(UUID.randomUUID(), userOne, "test 3", new Timestamp(System.currentTimeMillis()), new byte[256]);
+        MessageRecord messageC = new MessageRecord(UUID.randomUUID(), userOne, "test 3", new Timestamp(System.currentTimeMillis()), new byte[256]);
         messageC.setFather(messageA);
         messageC.setMother(messageB);
 
@@ -92,12 +92,12 @@ public class Client implements CommandLineRunner {
         repository.save(messageC);
 
         //log.info("Messages currently in database: ");
-        for (Message message : repository.findAll()) {
+        for (MessageRecord message : repository.findAll()) {
             //log.info(message.toString());
         }
 
         // log.info("Messages currently in database for user '" + userOne + "':");
-        for (Message message : repository.findByUserId(userOne)) {
+        for (MessageRecord message : repository.findByUserId(userOne)) {
             //log.info(message.toString());
         }
 
@@ -116,7 +116,7 @@ public class Client implements CommandLineRunner {
         //clientManager.write(new NewMessageAnnouncement(messageC));
         //clientManager.write(new LatestMessageRequest());
 
-        Message oldest = databaseManager.getRepository().findFirstByOrderByTimestampAsc();
+        MessageRecord oldest = databaseManager.getRepository().findFirstByOrderByTimestampAsc();
 
         log.info("---- Oldest ----");
         log.info("Self: " + oldest.toString());
@@ -126,7 +126,7 @@ public class Client implements CommandLineRunner {
         log.info("Right Children: " + oldest.getRightChildren().toString());
 
 
-        Message youngest = databaseManager.getRepository().findFirstByOrderByTimestampDesc();
+        MessageRecord youngest = databaseManager.getRepository().findFirstByOrderByTimestampDesc();
 
         log.info("---- Youngest ----");
         log.info("Self: " + youngest.toString());

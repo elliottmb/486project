@@ -8,7 +8,6 @@ import org.springframework.stereotype.Component;
 
 /**
  * Primarily for testing
- *
  */
 @Component
 public class LoggingMessageHandler implements MessageHandler<AbstractMessage> {

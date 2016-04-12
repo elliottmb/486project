@@ -1,7 +1,7 @@
 package edu.iastate.cs.theseguys;
 
+import edu.iastate.cs.theseguys.database.MessageRecord;
 import edu.iastate.cs.theseguys.database.MessageRepository;
-import edu.iastate.cs.theseguys.hibernate.Message;
 import javafx.util.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -17,15 +17,15 @@ public class DatabaseManager {
 
     // TODO: Abstract business logic around repository here, such that nothing has direct access to the repository
 
-    public Message getLatestMessage() {
+    public MessageRecord getLatestMessage() {
         return repository.findFirstByOrderByTimestampDesc();
     }
 
-    public boolean hasFather(Message m) {
+    public boolean hasFather(MessageRecord m) {
         return repository.findOne(m.getFather().getId()) != null;
     }
 
-    public boolean hasMother(Message m) {
+    public boolean hasMother(MessageRecord m) {
         return repository.findOne(m.getMother().getId()) != null;
     }
 
@@ -34,7 +34,7 @@ public class DatabaseManager {
      *
      * @return
      */
-    public Pair<Message, Message> getYoungestCouple() {
+    public Pair<MessageRecord, MessageRecord> getYoungestCouple() {
         // TODO
         return null;
     }

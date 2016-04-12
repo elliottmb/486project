@@ -1,7 +1,6 @@
 package edu.iastate.cs.theseguys.network;
 
 import edu.iastate.cs.theseguys.DatabaseManager;
-import edu.iastate.cs.theseguys.hibernate.Message;
 import org.apache.mina.core.session.IoSession;
 import org.apache.mina.handler.demux.MessageHandler;
 import org.slf4j.Logger;
@@ -20,15 +19,9 @@ public class LatestMessageResponseHandler implements MessageHandler<LatestMessag
     public void handleMessage(IoSession session, LatestMessageResponse message) throws Exception {
         log.info("Received " + message.toString());
 
-        Message m = message.getMessage();
+        MessageDatagram m = message.getMessage();
 
-
-        if (!databaseManager.hasFather(m)) {
-            // TODO
-        }
-        if (!databaseManager.hasMother(m)) {
-            // TODO
-        }
+        // TODO:
     }
 }
 
