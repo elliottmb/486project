@@ -22,9 +22,7 @@ public class LatestMessageRequestHandler implements MessageHandler<LatestMessage
 
         MessageRecord latestMessage = databaseManager.getLatestMessage();
 
-        MessageDatagram messageDatagram = new MessageDatagram(latestMessage);
-
-        session.write(new LatestMessageResponse(messageDatagram));
+        session.write(new LatestMessageResponse(latestMessage.toDatagram()));
     }
 }
 

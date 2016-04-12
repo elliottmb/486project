@@ -15,5 +15,6 @@ public interface MessageRepository extends CrudRepository<MessageRecord, UUID> {
     List<MessageRecord> findByTimestamp(Timestamp timestamp);
 
     MessageRecord findFirstByOrderByTimestampAsc();
+
     MessageRecord findFirstByOrderByTimestampDesc();
 }

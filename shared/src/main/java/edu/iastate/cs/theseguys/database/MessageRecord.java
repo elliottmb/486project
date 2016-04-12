@@ -1,7 +1,8 @@
 package edu.iastate.cs.theseguys.database;
 
+import edu.iastate.cs.theseguys.network.MessageDatagram;
+
 import javax.persistence.*;
-import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.Set;
 import java.util.UUID;
@@ -11,7 +12,7 @@ import java.util.UUID;
  */
 @Entity
 @Table(name = "message")
-public class MessageRecord implements Serializable {
+public class MessageRecord {
     @OneToMany(fetch = FetchType.EAGER)
     @JoinColumn(name = "father_id")
     private Set<MessageRecord> leftChildren;
@@ -129,5 +130,9 @@ public class MessageRecord implements Serializable {
 
     public void setRightChildren(Set<MessageRecord> rightChildren) {
         this.rightChildren = rightChildren;
+    }
+
+    public MessageDatagram toDatagram() {
+        return new MessageDatagram(this);
     }
 }
