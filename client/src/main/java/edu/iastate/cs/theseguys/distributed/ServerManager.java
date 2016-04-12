@@ -6,6 +6,7 @@ import edu.iastate.cs.theseguys.network.*;
 import org.apache.mina.filter.codec.ProtocolCodecFilter;
 import org.apache.mina.filter.codec.serialization.ObjectSerializationCodecFactory;
 import org.apache.mina.filter.logging.LoggingFilter;
+import org.apache.mina.handler.demux.MessageHandler;
 import org.apache.mina.transport.socket.nio.NioSocketAcceptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,7 +39,7 @@ public class ServerManager extends AbstractIoAcceptorManager {
     private void prepareHandlers() {
         getIoHandler().addReceivedMessageHandler(LatestMessageRequest.class, latestMessageRequestHandler);
         getIoHandler().addReceivedMessageHandler(NewMessageAnnouncement.class, loggingMessageHandler);
-        getIoHandler().addSentMessageHandler(LatestMessageResponse.class, loggingMessageHandler);
+        getIoHandler().addSentMessageHandler(LatestMessageResponse.class, MessageHandler.NOOP);
 
         getService().getFilterChain().addLast("logger", new LoggingFilter());
         getService().getFilterChain().addLast("codec", new ProtocolCodecFilter(new ObjectSerializationCodecFactory()));

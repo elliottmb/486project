@@ -14,6 +14,8 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.net.InetSocketAddress;
 import java.sql.Timestamp;
 import java.util.UUID;
@@ -134,6 +136,18 @@ public class Client implements CommandLineRunner {
         log.info("Mother: " + youngest.getMother().toString());
         log.info("Left Children: " + youngest.getLeftChildren().toString());
         log.info("Right Children: " + youngest.getRightChildren().toString());
+
+        BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
+
+        System.out.print("> ");
+        String s;
+        while ((s = in.readLine()) != null) {
+            if (":q".equalsIgnoreCase(s))
+                break;
+
+            System.out.println("We would be handling your message, but we're too busy");
+            System.out.print("> ");
+        }
 
         clientManager.dispose();
         serverManager.dispose();
