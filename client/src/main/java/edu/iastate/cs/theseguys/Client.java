@@ -1,19 +1,11 @@
 package edu.iastate.cs.theseguys;
 
+import edu.iastate.cs.theseguys.database.MessageRecord;
 import edu.iastate.cs.theseguys.database.MessageRepository;
-import edu.iastate.cs.theseguys.hibernate.Message;
-import edu.iastate.cs.theseguys.network.LatestMessageRequest;
-import edu.iastate.cs.theseguys.network.LoggingMessageHandler;
-import edu.iastate.cs.theseguys.network.NewMessageAnnouncement;
-import org.apache.mina.core.RuntimeIoException;
+import edu.iastate.cs.theseguys.distributed.ClientManager;
+import edu.iastate.cs.theseguys.distributed.ServerManager;
+import javafx.util.Pair;
 import org.apache.mina.core.future.ConnectFuture;
-import org.apache.mina.core.service.IoConnector;
-import org.apache.mina.core.session.IoSession;
-import org.apache.mina.filter.codec.ProtocolCodecFilter;
-import org.apache.mina.filter.codec.serialization.ObjectSerializationCodecFactory;
-import org.apache.mina.filter.logging.LoggingFilter;
-import org.apache.mina.handler.demux.DemuxingIoHandler;
-import org.apache.mina.transport.socket.nio.NioSocketConnector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +15,8 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.net.InetSocketAddress;
 import java.sql.Timestamp;
 import java.util.UUID;
@@ -31,11 +25,10 @@ import java.util.UUID;
  * Client that runs on a user's machine.  Maintains a database
  * of messages, as well as a list of other Clients that this Client
  * is connected to, and a list of Clients which are connected to
- * this Client.  
+ * this Client.
  * Also maintains a connection to the Central Authority.
  * Connected Clients with exchange messages with each other using
- * the different subclasses of the AbstractMessage class.  
- *
+ * the different subclasses of the AbstractMessage class.
  */
 @Configuration
 @ComponentScan
@@ -43,11 +36,12 @@ import java.util.UUID;
 public class Client implements CommandLineRunner {
     private static final Logger log = LoggerFactory.getLogger(Client.class);
 
-    
     @Autowired
-    private DistributedClientManager distributedClientManager;
+    private AuthorityManager authorityManager;
     @Autowired
-    private DistributedServerManager distributedServerManager;
+    private ClientManager clientManager;
+    @Autowired
+    private ServerManager serverManager;
     @Autowired
     private DatabaseManager databaseManager;
 
@@ -67,70 +61,129 @@ public class Client implements CommandLineRunner {
 
         MessageRepository repository = this.getDatabaseManager().getRepository();
 
-        Message root = new Message(rootId, UUID.randomUUID(), rootId, rootId, "Welcome to DILC", new Timestamp(System.currentTimeMillis()), new byte[256]);
-        Message messageA = new Message(UUID.randomUUID(), userOne, root.getId(), root.getId(), "test", new Timestamp(System.currentTimeMillis()), new byte[256]);
-        Message messageB = new Message(UUID.randomUUID(), userTwo, root.getId(), messageA.getId(), "test 2", new Timestamp(System.currentTimeMillis()), new byte[256]);
-        Message messageC = new Message(UUID.randomUUID(), userOne, messageA.getId(), messageB.getId(), "test 3", new Timestamp(System.currentTimeMillis()), new byte[256]);
+        MessageRecord root = new MessageRecord(rootId, UUID.randomUUID(), "Welcome to DILC", new Timestamp(System.currentTimeMillis()), new byte[256]);
+        root.setFather(root);
+        root.setMother(root);
+        try {
+            Thread.sleep(1000);                 //1000 milliseconds is one second.
+        } catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
+        }
+        MessageRecord messageA = new MessageRecord(UUID.randomUUID(), userOne, "test", new Timestamp(System.currentTimeMillis()), new byte[256]);
+        messageA.setFather(root);
+        messageA.setMother(root);
+        try {
+            Thread.sleep(1000);                 //1000 milliseconds is one second.
+        } catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
+        }
+        MessageRecord messageB = new MessageRecord(UUID.randomUUID(), userTwo, "test 2", new Timestamp(System.currentTimeMillis()), new byte[256]);
+        messageB.setFather(root);
+        messageB.setMother(messageA);
+        try {
+            Thread.sleep(1000);                 //1000 milliseconds is one second.
+        } catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
+        }
+        MessageRecord messageC = new MessageRecord(UUID.randomUUID(), userOne, "test 3", new Timestamp(System.currentTimeMillis()), new byte[256]);
+        messageC.setFather(messageA);
+        messageC.setMother(messageB);
 
         repository.save(root);
         repository.save(messageA);
         repository.save(messageB);
         repository.save(messageC);
 
-        log.info("Messages currently in database: ");
-        for (Message message : repository.findAll()) {
-            log.info(message.toString());
+        //log.info("Messages currently in database: ");
+        for (MessageRecord message : repository.findAll()) {
+            //log.info(message.toString());
         }
 
-        log.info("Messages currently in database for user '" + userOne + "':");
-        for (Message message : repository.findByUserId(userOne)) {
-            log.info(message.toString());
+        // log.info("Messages currently in database for user '" + userOne + "':");
+        for (MessageRecord message : repository.findByUserId(userOne)) {
+            //log.info(message.toString());
         }
 
-        IoConnector connector = new NioSocketConnector();
-        DemuxingIoHandler demuxIoHandler = new DemuxingIoHandler();
+        serverManager.run();
+
+        ConnectFuture firstConnection = clientManager.connect(new InetSocketAddress("localhost", 5050));
+        //ConnectFuture secondConnection = clientManager.connect(new InetSocketAddress("localhost", 5050));
 
 
-        demuxIoHandler.addSentMessageHandler(LatestMessageRequest.class, new LoggingMessageHandler());
-        demuxIoHandler.addSentMessageHandler(NewMessageAnnouncement.class, new LoggingMessageHandler());
+        // We need to wait on at least one connection since we're doing it in the main method here instead of via a handler
+        firstConnection.awaitUninterruptibly();
+        // secondConnection.awaitUninterruptibly();
 
-        connector.getFilterChain().addLast("logger", new LoggingFilter());
-        connector.getFilterChain().addLast("codec", new ProtocolCodecFilter(new ObjectSerializationCodecFactory()));
-        connector.setHandler(demuxIoHandler);
+        //clientManager.write(new NewMessageAnnouncement(messageA));
+        //clientManager.write(new NewMessageAnnouncement(messageB));
+        //clientManager.write(new NewMessageAnnouncement(messageC));
+        //clientManager.write(new LatestMessageRequest());
 
-        IoSession session;
-        while (true) {
-            try {
-                ConnectFuture future = connector.connect(new InetSocketAddress("localhost", 5050));
-                future.awaitUninterruptibly();
-                session = future.getSession();
+        MessageRecord oldest = databaseManager.getRepository().findFirstByOrderByTimestampAsc();
+
+        log.info("---- Oldest ----");
+        log.info("Self: " + oldest.toString());
+        log.info("Father: " + oldest.getFather().toString());
+        log.info("Mother: " + oldest.getMother().toString());
+        log.info("Left Children: " + oldest.getLeftChildren().toString());
+        log.info("Right Children: " + oldest.getRightChildren().toString());
+
+
+        MessageRecord youngest = databaseManager.getRepository().findFirstByOrderByTimestampDesc();
+
+        log.info("---- Youngest ----");
+        log.info("Self: " + youngest.toString());
+        log.info("Father: " + youngest.getFather().toString());
+        log.info("Mother: " + youngest.getMother().toString());
+        log.info("Left Children: " + youngest.getLeftChildren().toString());
+        log.info("Right Children: " + youngest.getRightChildren().toString());
+
+        youngest = databaseManager.getLatestMessage();
+
+        log.info("---- Youngest (getLatestMessage) ----");
+        log.info("Self: " + youngest.toString());
+        log.info("Father: " + youngest.getFather().toString());
+        log.info("Mother: " + youngest.getMother().toString());
+        log.info("Left Children: " + youngest.getLeftChildren().toString());
+        log.info("Right Children: " + youngest.getRightChildren().toString());
+
+        BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
+
+        System.out.print("> ");
+        String s;
+        while ((s = in.readLine()) != null) {
+            if (":q".equalsIgnoreCase(s))
                 break;
-            } catch (RuntimeIoException e) {
-                System.err.println("Failed to connect.");
-                e.printStackTrace();
-                Thread.sleep(5000);
-            }
+
+            System.out.println("We would be handling your message, but we're too busy");
+            System.out.print("> ");
         }
 
-        session.write(new LatestMessageRequest());
-        session.write(new NewMessageAnnouncement(messageA));
-        session.write(new NewMessageAnnouncement(messageB));
-        session.write(new NewMessageAnnouncement(messageC));
+        Pair<MessageRecord, MessageRecord> possibleParents = databaseManager.getMostFruitlessTwoRecords();
 
-        // wait until the summation is done
-        session.getCloseFuture().awaitUninterruptibly();
+        log.info("---- Possible parents for a new message are:");
+        log.info(possibleParents.getKey().toString());
+        log.info(possibleParents.getKey().getFather().toString());
+        log.info(possibleParents.getKey().getMother().toString());
+        log.info(possibleParents.getValue().toString());
+        log.info(possibleParents.getValue().getFather().toString());
+        log.info(possibleParents.getValue().getMother().toString());
 
-        connector.dispose();
+        clientManager.dispose();
+        serverManager.dispose();
     }
 
-    
-
-    public DistributedClientManager getDistributedClientManager() {
-        return distributedClientManager;
+    public AuthorityManager getAuthorityManager() {
+        return authorityManager;
     }
 
-    public DistributedServerManager getDistributedServerManager() {
-        return distributedServerManager;
+
+    public ClientManager getClientManager() {
+        return clientManager;
+    }
+
+    public ServerManager getServerManager() {
+        return serverManager;
     }
 
     public DatabaseManager getDatabaseManager() {
