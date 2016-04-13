@@ -61,7 +61,8 @@ public class TestClient implements CommandLineRunner{
         connector.setHandler(demuxIoHandler);
 
         IoSession session;
-        while (true) {
+        int attempts = 0;
+        while (attempts < 10) {
             try {
                 ConnectFuture future = connector.connect(new InetSocketAddress("localhost", 5050));
                 future.awaitUninterruptibly();
@@ -71,6 +72,7 @@ public class TestClient implements CommandLineRunner{
                 System.err.println("Failed to connect.");
                 e.printStackTrace();
                 Thread.sleep(5000);
+                attempts++;
             }
         }
 
