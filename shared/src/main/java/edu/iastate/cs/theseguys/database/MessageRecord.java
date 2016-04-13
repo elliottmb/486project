@@ -24,7 +24,7 @@ public class MessageRecord {
     @ManyToOne
     private MessageRecord mother;
     @Id
-    @Column(columnDefinition = "UUID NOT NULL UNIQUE")
+    @Column(columnDefinition = "UUID NOT NULL")
     private UUID id;
     @Column(columnDefinition = "UUID NOT NULL")
     private UUID userId;

@@ -4,6 +4,7 @@ import edu.iastate.cs.theseguys.database.MessageRecord;
 import edu.iastate.cs.theseguys.database.MessageRepository;
 import edu.iastate.cs.theseguys.distributed.ClientManager;
 import edu.iastate.cs.theseguys.distributed.ServerManager;
+import javafx.util.Pair;
 import org.apache.mina.core.future.ConnectFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -137,6 +138,15 @@ public class Client implements CommandLineRunner {
         log.info("Left Children: " + youngest.getLeftChildren().toString());
         log.info("Right Children: " + youngest.getRightChildren().toString());
 
+        youngest = databaseManager.getLatestMessage();
+
+        log.info("---- Youngest (getLatestMessage) ----");
+        log.info("Self: " + youngest.toString());
+        log.info("Father: " + youngest.getFather().toString());
+        log.info("Mother: " + youngest.getMother().toString());
+        log.info("Left Children: " + youngest.getLeftChildren().toString());
+        log.info("Right Children: " + youngest.getRightChildren().toString());
+
         BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
 
         System.out.print("> ");
@@ -148,6 +158,16 @@ public class Client implements CommandLineRunner {
             System.out.println("We would be handling your message, but we're too busy");
             System.out.print("> ");
         }
+
+        Pair<MessageRecord, MessageRecord> possibleParents = databaseManager.getMostFruitlessTwoRecords();
+
+        log.info("---- Possible parents for a new message are:");
+        log.info(possibleParents.getKey().toString());
+        log.info(possibleParents.getKey().getFather().toString());
+        log.info(possibleParents.getKey().getMother().toString());
+        log.info(possibleParents.getValue().toString());
+        log.info(possibleParents.getValue().getFather().toString());
+        log.info(possibleParents.getValue().getMother().toString());
 
         clientManager.dispose();
         serverManager.dispose();
