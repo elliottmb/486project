@@ -5,8 +5,12 @@ import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
 
-import edu.iastate.cs.theseguys.database.DatabaseManager;
 
 
 /**
@@ -16,7 +20,11 @@ import edu.iastate.cs.theseguys.database.DatabaseManager;
  * Clients, so that new Clients know where to connect to in order to
  * build up their peer network.  
  */
-public class CentralAuthority {
+
+@Configuration
+@ComponentScan
+@EnableAutoConfiguration
+public class CentralAuthority implements CommandLineRunner {
 	
 	private static final Logger log = LoggerFactory.getLogger(CentralAuthority.class);
 	
@@ -35,8 +43,8 @@ public class CentralAuthority {
         
         //put these in the clientManager
         
+        SpringApplication.run(CentralAuthority.class, args);
         
-        clientManager = new AuthorityClientManager();
 
 //        demuxIoHandler.addReceivedMessageHandler(LatestMessageRequest.class, new LatestMessageRequestHandler());
 //        demuxIoHandler.addReceivedMessageHandler(NewMessageAnnouncement.class, new LoggingMessageHandler());
@@ -54,6 +62,12 @@ public class CentralAuthority {
         
         
         
+    }
+    
+    @Override
+    public void run(String... args) throws Exception {
+    	System.out.println("RUNNING");
+    	//clientManager = new AuthorityClientManager();
     }
 
     public boolean someLibraryMethod() {

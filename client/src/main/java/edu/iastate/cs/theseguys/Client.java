@@ -43,8 +43,7 @@ import java.util.UUID;
 public class Client implements CommandLineRunner {
     private static final Logger log = LoggerFactory.getLogger(Client.class);
 
-    @Autowired
-    private AuthorityClientManager authorityClientManager;
+    
     @Autowired
     private DistributedClientManager distributedClientManager;
     @Autowired
@@ -124,9 +123,7 @@ public class Client implements CommandLineRunner {
         connector.dispose();
     }
 
-    public AuthorityClientManager getAuthorityClientManager() {
-        return authorityClientManager;
-    }
+    
 
     public DistributedClientManager getDistributedClientManager() {
         return distributedClientManager;

@@ -1,12 +1,13 @@
 package edu.iastate.cs.theseguys.network;
 
+import java.util.UUID;
 
 public class LoginResponse extends AbstractMessage{
 	private static final long serialVersionUID = -8424104713314817865L;
 	private boolean success;
-	private long assignedId;
+	private UUID assignedId;  //this is the id which the user's name/password are associated with in the Users table
 	
-	public LoginResponse(boolean success, long assignedId)
+	public LoginResponse(boolean success, UUID assignedId)
 	{
 		this.success = success;
 		this.assignedId = assignedId;
@@ -17,7 +18,7 @@ public class LoginResponse extends AbstractMessage{
 		return success;
 	}
 	
-	public long getAssignedId()
+	public UUID getAssignedId()
 	{
 		return assignedId;
 	}

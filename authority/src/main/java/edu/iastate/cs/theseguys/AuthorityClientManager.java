@@ -5,6 +5,10 @@ package edu.iastate.cs.theseguys;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map.Entry;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -13,6 +17,7 @@ import org.apache.mina.core.session.IoSession;
 import org.apache.mina.filter.codec.ProtocolCodecFilter;
 import org.apache.mina.filter.codec.serialization.ObjectSerializationCodecFactory;
 import org.apache.mina.filter.logging.LoggingFilter;
+import org.apache.mina.handler.demux.MessageHandler;
 import org.apache.mina.transport.socket.nio.NioSocketAcceptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,8 +25,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import edu.iastate.cs.theseguys.database.DatabaseManager;
+import edu.iastate.cs.theseguys.database.User;
+import edu.iastate.cs.theseguys.model.Peer;
 import edu.iastate.cs.theseguys.network.LoginRequest;
-import edu.iastate.cs.theseguys.network.NewMessageAnnouncement;
+import edu.iastate.cs.theseguys.network.LoginResponse;
+import edu.iastate.cs.theseguys.network.PeerListRequest;
+import edu.iastate.cs.theseguys.network.PeerListResponse;
+import edu.iastate.cs.theseguys.network.RegisterRequest;
+import edu.iastate.cs.theseguys.network.RegisterResponse;
+import edu.iastate.cs.theseguys.network.VerificationRequest;
+import edu.iastate.cs.theseguys.network.VerificationResponse;
 
 @Component
 public class AuthorityClientManager {
@@ -33,7 +46,7 @@ public class AuthorityClientManager {
 	private CustomDemuxingIoHandler ioHandler;
 	//iosession to port.  iosession contains client's ip, but we need to also store the port that the client listens for other clients on
 	private ConcurrentMap<IoSession, Integer> connectedClients;  
-	private ConcurrentMap<Long, IoSession> activeSessions;
+	private ConcurrentMap<UUID, IoSession> activeSessions;
 	
 	
 	@Autowired
@@ -42,14 +55,21 @@ public class AuthorityClientManager {
 	public AuthorityClientManager()
 	{
 		connectedClients = new ConcurrentHashMap<IoSession, Integer>();
-		activeSessions = new ConcurrentHashMap<Long, IoSession>();
+		activeSessions = new ConcurrentHashMap<UUID, IoSession>();
 		
 		acceptor = new NioSocketAcceptor();
-        //DemuxingIoHandler demuxIoHandler = new DemuxingIoHandler();
         ioHandler = new CustomDemuxingIoHandler(this);
         
         ioHandler.addReceivedMessageHandler(LoginRequest.class, new LoginRequestHandler(this));
-        ioHandler.addReceivedMessageHandler(NewMessageAnnouncement.class, new NewMessageAnnouncementHandler(this));
+        ioHandler.addReceivedMessageHandler(RegisterRequest.class, new RegisterRequestHandler(this));
+        ioHandler.addReceivedMessageHandler(PeerListRequest.class, new PeerListRequestHandler(this));
+        ioHandler.addReceivedMessageHandler(VerificationRequest.class, new VerificationRequestHandler(this));
+        
+        ioHandler.addSentMessageHandler(RegisterResponse.class, MessageHandler.NOOP);
+        ioHandler.addSentMessageHandler(PeerListResponse.class, MessageHandler.NOOP);
+        ioHandler.addSentMessageHandler(LoginResponse.class, MessageHandler.NOOP);
+        ioHandler.addSentMessageHandler(VerificationResponse.class, MessageHandler.NOOP);
+        
         
         acceptor.getFilterChain().addLast("logger", new LoggingFilter());
         acceptor.getFilterChain().addLast("codec", new ProtocolCodecFilter(new ObjectSerializationCodecFactory()));
@@ -71,7 +91,7 @@ public class AuthorityClientManager {
 	}
 	
 
-	public void addNewClient(IoSession session, long userID, Integer port)
+	public void addNewClient(IoSession session, UUID userID, Integer port)
 	{
 		connectedClients.put(session, port);
 		activeSessions.put(userID, session);
@@ -84,21 +104,57 @@ public class AuthorityClientManager {
 	}
 
 	
-	public boolean verifyLogin(String username, String password)
+	public boolean userExists(String username, String password)
 	{
-		if (databaseManager.getRepository().userExists(username, password))
+		List<User> matches = databaseManager.getRepository().findByUsernameAndPassword(username, password);
+		if (matches.size()==1)
 		{
 			return true;
 		}
-		//if db contains this username/password combo, return true
-		//else, return false
+		if (matches.size() > 1)
+		{
+			log.info("There is a non-unique username:"+username);
+		}
 		
 		return false;
 	}
 	
-	public long getUserId(String username)
+	public UUID getUserId(String username)
 	{
 		//get the id assigned to this user in the database
 		return databaseManager.getRepository().getId(username);
 	}
+	
+	public void insertUser(User user)
+	{
+		databaseManager.getRepository().save(user);
+	}
+	
+	public List<Peer> getAllClients()
+	{
+		List<Peer> clients= new ArrayList<Peer>(connectedClients.size());
+		
+		for (Entry<IoSession, Integer> e : connectedClients.entrySet())
+		{
+			clients.add(new Peer(e.getKey().getRemoteAddress().toString(), e.getValue()));
+		}
+		
+		return clients;
+	}
+	
+	public DatabaseManager getDatabaseManager()
+	{
+		return databaseManager;
+	}
+	
+	public String getConnectedClients()
+	{
+		String result = "";
+		for (Entry<IoSession, Integer> e : connectedClients.entrySet())
+		{
+			result+=e.getKey() + " " + e.getValue() + "\n";
+		}
+		return result;
+	}
+
 }

@@ -23,6 +23,11 @@ public class RegisterResponse extends AbstractMessage {
 		return message;
 	}
 	
+	@Override
+	public String toString()
+	{
+		return "success: " + success + "  message:"+message;
+	}
 	
 
 }
