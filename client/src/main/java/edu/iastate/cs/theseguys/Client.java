@@ -177,6 +177,7 @@ public class Client implements CommandLineRunner {
         return authorityManager;
     }
 
+
     public ClientManager getClientManager() {
         return clientManager;
     }
