@@ -1,43 +1,39 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import java.net.*?>
-<?import javafx.geometry.*?>
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<?import javafx.scene.text.*?>
-<?import javafx.scene.control.PasswordField?>
-<?import javafx.scene.layout.HBox?>
-
+<?import javafx.scene.text.Text?>
 <GridPane prefHeight="375.0" prefWidth="400.0" fx:controller="edu.iastate.cs.theseguys.ui.LoginController"
-	xmlns:fx="http://javafx.com/fxml" alignment="center" hgap="10" vgap="10"
-	styleClass="root">
-	<padding>
-		<Insets top="25" right="25" bottom="10" left="25" />
-	</padding>
+          xmlns:fx="http://javafx.com/fxml" alignment="center" hgap="10" vgap="10"
+          styleClass="root">
+    <padding>
+        <Insets top="25" right="25" bottom="10" left="25"/>
+    </padding>
 
-	<Text id="title" text="Welcome" GridPane.columnIndex="0"
-		GridPane.rowIndex="0" GridPane.columnSpan="2" />
+    <Text id="title" text="Welcome" GridPane.columnIndex="0"
+          GridPane.rowIndex="0" GridPane.columnSpan="2"/>
 
-	<Label text="Username" GridPane.columnIndex="0"
-		GridPane.rowIndex="1" />
+    <Label text="Username" GridPane.columnIndex="0"
+           GridPane.rowIndex="1"/>
 
-	<TextField fx:id="username" GridPane.columnIndex="1"
-		GridPane.rowIndex="1" />
+    <TextField fx:id="username" GridPane.columnIndex="1"
+               GridPane.rowIndex="1"/>
 
-	<Label text="Password" GridPane.columnIndex="0"
-		GridPane.rowIndex="2" />
+    <Label text="Password" GridPane.columnIndex="0"
+           GridPane.rowIndex="2"/>
 
-	<PasswordField fx:id="password" GridPane.columnIndex="1"
-		GridPane.rowIndex="2" />
+    <PasswordField fx:id="password" GridPane.columnIndex="1"
+                   GridPane.rowIndex="2"/>
 
-	<HBox spacing="10" alignment="center" GridPane.columnIndex="1"
-		GridPane.rowIndex="4">
-		<Button text="Sign in" onAction="#signin" />
-		<Button text="Register" onAction="#register" />
-	</HBox>
+    <HBox spacing="10" alignment="center" GridPane.columnIndex="1"
+          GridPane.rowIndex="4">
+        <Button text="Sign in" onAction="#signin"/>
+        <Button text="Register" onAction="#register"/>
+    </HBox>
 
-	<Text fx:id="error" GridPane.columnIndex="0" GridPane.columnSpan="2"
-		GridPane.halignment="RIGHT" GridPane.rowIndex="6" />
+    <Text fx:id="error" GridPane.columnIndex="0" GridPane.columnSpan="2"
+          GridPane.halignment="RIGHT" GridPane.rowIndex="6"/>
 
 </GridPane>
 

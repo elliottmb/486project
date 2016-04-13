@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.scene.layout.GridPane?>
-
 <GridPane fx:controller="edu.iastate.cs.theseguys.ui.ChatController"
-	xmlns:fx="http://javafx.com/fxml/1">
-	<!-- TODO Add Nodes -->
+          xmlns:fx="http://javafx.com/fxml/1">
+    <!-- TODO Add Nodes -->
 </GridPane>
 

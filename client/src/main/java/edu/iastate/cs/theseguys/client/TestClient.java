@@ -1,9 +1,6 @@
 package edu.iastate.cs.theseguys.client;
 
-import java.net.InetSocketAddress;
-import java.sql.Timestamp;
-import java.util.UUID;
-
+import edu.iastate.cs.theseguys.network.*;
 import org.apache.mina.core.RuntimeIoException;
 import org.apache.mina.core.future.ConnectFuture;
 import org.apache.mina.core.service.IoConnector;
@@ -12,7 +9,6 @@ import org.apache.mina.filter.codec.ProtocolCodecFilter;
 import org.apache.mina.filter.codec.serialization.ObjectSerializationCodecFactory;
 import org.apache.mina.filter.logging.LoggingFilter;
 import org.apache.mina.handler.demux.DemuxingIoHandler;
-import org.apache.mina.handler.demux.MessageHandler;
 import org.apache.mina.transport.socket.nio.NioSocketConnector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,21 +18,16 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
-
-import edu.iastate.cs.theseguys.network.LoggingMessageHandler;
-import edu.iastate.cs.theseguys.network.LoginRequest;
-import edu.iastate.cs.theseguys.network.LoginResponse;
-import edu.iastate.cs.theseguys.network.RegisterRequest;
-import edu.iastate.cs.theseguys.network.RegisterResponse;
+import java.net.InetSocketAddress;
 
 @Configuration
 @ComponentScan
 @EnableAutoConfiguration
-public class TestClient implements CommandLineRunner{
+public class TestClient implements CommandLineRunner {
     private static final Logger log = LoggerFactory.getLogger(TestClient.class);
 
-	
-	public static void main(String[] args) {
+
+    public static void main(String[] args) {
         log.info("I touch myself");
 
         SpringApplication.run(TestClient.class, args);
@@ -49,10 +40,9 @@ public class TestClient implements CommandLineRunner{
         DemuxingIoHandler demuxIoHandler = new DemuxingIoHandler();
 
 
-
         demuxIoHandler.addSentMessageHandler(RegisterRequest.class, new LoggingMessageHandler());
         demuxIoHandler.addSentMessageHandler(LoginRequest.class, new LoggingMessageHandler());
-        
+
         demuxIoHandler.addReceivedMessageHandler(RegisterResponse.class, new LoggingMessageHandler());
         demuxIoHandler.addReceivedMessageHandler(LoginResponse.class, new LoggingMessageHandler());
 
@@ -60,7 +50,7 @@ public class TestClient implements CommandLineRunner{
         connector.getFilterChain().addLast("codec", new ProtocolCodecFilter(new ObjectSerializationCodecFactory()));
         connector.setHandler(demuxIoHandler);
 
-        IoSession session;
+        IoSession session = null;
         int attempts = 0;
         while (attempts < 10) {
             try {
@@ -76,12 +66,13 @@ public class TestClient implements CommandLineRunner{
             }
         }
 
-        session.write(new LoginRequest("barack", "obama", 1234));
-       
+        if (session != null) {
+            session.write(new LoginRequest("barack", "obama", 1234));
 
-        // wait until the summation is done
-        session.getCloseFuture().awaitUninterruptibly();
 
+            // wait until the summation is done
+            session.getCloseFuture().awaitUninterruptibly();
+        }
         connector.dispose();
     }
 
