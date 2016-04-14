@@ -8,23 +8,23 @@ import javafx.scene.control.TextField;
 
 public class ChatController {
 
-	@FXML
-	private TextArea chat;
+    @FXML
+    private TextArea chat;
 
-	@FXML
-	private TextArea users;
+    @FXML
+    private TextArea users;
 
-	@FXML
-	private TextField input;
+    @FXML
+    private TextField input;
 
-	@FXML
-	private Button submit;
+    @FXML
+    private Button submit;
 
-	@FXML
-	protected void submitText(ActionEvent event) {
-		if (!input.getText().equals("")) {
-			chat.appendText(input.getText() + "\n");
-		}
-	}
+    @FXML
+    protected void submitText(ActionEvent event) {
+        if (!input.getText().equals("")) {
+            chat.appendText(input.getText() + "\n");
+        }
+    }
 
 }

@@ -27,20 +27,19 @@ public class LoginController {
     @FXML
     protected void button(ActionEvent event) throws IOException {
         //TODO add signin checking here. If failed, show error in text error
-    	if(event.getSource() instanceof Button){
-    		Button pressed = (Button) event.getSource();
-    		Stage stage = (Stage) pressed.getScene().getWindow();
-    		Parent root = null;
-    		if (pressed.getText().equals("Register")){
-    			root = FXMLLoader.load(getClass().getResource("register.fxml"));
-    		}
-    		else{
-    			root = FXMLLoader.load(getClass().getResource("chat.fxml"));
-    		}
-    		Scene scene = new Scene(root);
-    		stage.setScene(scene);
-    		stage.show();
-    	}
+        if (event.getSource() instanceof Button) {
+            Button pressed = (Button) event.getSource();
+            Stage stage = (Stage) pressed.getScene().getWindow();
+            Parent root = null;
+            if (pressed.getText().equals("Register")) {
+                root = new FXMLLoader(getClass().getResource("/fxml/register.fxml")).load();
+            } else {
+                root = new FXMLLoader(getClass().getResource("/fxml/chat.fxml")).load();
+            }
+            Scene scene = new Scene(root);
+            stage.setScene(scene);
+            stage.show();
+        }
     }
 
 }

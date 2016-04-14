@@ -5,22 +5,32 @@ import edu.iastate.cs.theseguys.database.MessageRepository;
 import edu.iastate.cs.theseguys.distributed.ClientManager;
 import edu.iastate.cs.theseguys.distributed.ServerManager;
 import edu.iastate.cs.theseguys.network.MessageDatagram;
+import javafx.application.Platform;
+import javafx.embed.swing.JFXPanel;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.stage.Stage;
 import javafx.util.Pair;
 import org.apache.mina.core.future.ConnectFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
-import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
+import javax.swing.*;
+import java.awt.*;
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.InetSocketAddress;
 import java.sql.Timestamp;
 import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * Client that runs on a user's machine.  Maintains a database
@@ -50,11 +60,49 @@ public class Client implements CommandLineRunner {
     public static void main(String[] args) {
         log.info("I touch myself");
 
-        SpringApplication.run(Client.class, args);
+        new SpringApplicationBuilder(Client.class)
+                .headless(false)
+                .web(false)
+                .run(args);
     }
 
     @Override
     public void run(String... args) throws Exception {
+        final CountDownLatch latch = new CountDownLatch(1);
+        SwingUtilities.invokeLater(() -> {
+            JFXPanel jfxPanel = new JFXPanel(); // initializes JavaFX environment
+            jfxPanel.setSize(800, 600);
+            jfxPanel.setVisible(true);
+            latch.countDown();
+        });
+        latch.await();
+
+        Platform.runLater(() -> {
+            Stage stage = new Stage();
+            stage.setTitle("TEST");
+
+            Parent root = null;
+            try {
+                root = new FXMLLoader(getClass().getResource("/fxml/login.fxml")).load();
+                stage.setScene(new Scene(root, 800, 600));
+            } catch (IOException e) {
+                e.printStackTrace();
+                System.exit(0);
+            }
+            stage.show();
+
+            //Application.launch(ClientUI.class, args);
+        });
+        /*
+        EventQueue.invokeLater(
+                () -> {
+                    JFrame frame = new SimpleFrame(this);
+
+
+                }
+        );*/
+
+
         UUID userOne = UUID.randomUUID();
         UUID userTwo = UUID.randomUUID();
 
@@ -207,7 +255,6 @@ public class Client implements CommandLineRunner {
         return authorityManager;
     }
 
-
     public ClientManager getClientManager() {
         return clientManager;
     }
@@ -218,5 +265,52 @@ public class Client implements CommandLineRunner {
 
     public DatabaseManager getDatabaseManager() {
         return databaseManager;
+    }
+
+    class SimpleFrame extends JFrame {
+        JPanel pnlButton = new JPanel();
+        // Buttons
+        JButton btnAddFlight = new JButton("Add Flight");
+        private Client client;
+
+        public SimpleFrame(Client client) {
+            super("dILC");
+
+            this.client = client;
+            setSize(new Dimension(300, 300));
+            setPreferredSize(new Dimension(300, 300));
+            setMaximumSize(new Dimension(300, 300));
+            setMinimumSize(new Dimension(300, 300));
+            setVisible(true);
+            pack();
+            setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+
+            btnAddFlight.setBounds(60, 400, 220, 30);
+
+            // JPanel bounds
+            pnlButton.setBounds(800, 800, 200, 100);
+
+            // Adding to JFrame
+            pnlButton.add(btnAddFlight);
+            add(pnlButton);
+
+            btnAddFlight.addActionListener(e -> {
+                Pair<MessageRecord, MessageRecord> parents = client.databaseManager.getIdealParentRecords();
+
+                MessageDatagram test = new MessageDatagram(
+                        UUID.randomUUID(),
+                        UUID.randomUUID(),
+                        parents.getKey().getId(),
+                        parents.getValue().getId(),
+                        "From a button!",
+                        new Timestamp(System.currentTimeMillis()),
+                        new byte[256]
+                );
+
+                databaseManager.getWaiting().push(new Pair<>(123912039L, test));
+
+            });
+
+        }
     }
 }
