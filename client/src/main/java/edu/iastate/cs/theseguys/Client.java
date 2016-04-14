@@ -4,6 +4,7 @@ import edu.iastate.cs.theseguys.database.MessageRecord;
 import edu.iastate.cs.theseguys.database.MessageRepository;
 import edu.iastate.cs.theseguys.distributed.ClientManager;
 import edu.iastate.cs.theseguys.distributed.ServerManager;
+import edu.iastate.cs.theseguys.network.MessageDatagram;
 import javafx.util.Pair;
 import org.apache.mina.core.future.ConnectFuture;
 import org.slf4j.Logger;
@@ -155,7 +156,19 @@ public class Client implements CommandLineRunner {
             if (":q".equalsIgnoreCase(s))
                 break;
 
-            System.out.println("We would be handling your message, but we're too busy");
+            System.out.println("We are only locally handling this, for now");
+            MessageDatagram test = new MessageDatagram(
+                    UUID.randomUUID(),
+                    userOne,
+                    messageB.getId(),
+                    messageC.getId(),
+                    s,
+                    new Timestamp(System.currentTimeMillis()),
+                    new byte[256]
+            );
+
+            databaseManager.getWaiting().push(new Pair<>(123912039L, test));
+
             System.out.print("> ");
         }
 
@@ -169,8 +182,25 @@ public class Client implements CommandLineRunner {
         log.info(possibleParents.getValue().getFather().toString());
         log.info(possibleParents.getValue().getMother().toString());
 
+
+        try {
+            Thread.sleep(1000);                 //1000 milliseconds is one second.
+        } catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
+        }
+
+        youngest = databaseManager.getLatestMessage();
+
+        log.info("---- Last submitted message ----");
+        log.info("Self: " + youngest.toString());
+        log.info("Father: " + youngest.getFather().toString());
+        log.info("Mother: " + youngest.getMother().toString());
+        log.info("Left Children: " + youngest.getLeftChildren().toString());
+        log.info("Right Children: " + youngest.getRightChildren().toString());
+
         clientManager.dispose();
         serverManager.dispose();
+        databaseManager.dispose();
     }
 
     public AuthorityManager getAuthorityManager() {
