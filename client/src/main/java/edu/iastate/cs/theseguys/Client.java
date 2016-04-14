@@ -172,7 +172,7 @@ public class Client implements CommandLineRunner {
             System.out.print("> ");
         }
 
-        Pair<MessageRecord, MessageRecord> possibleParents = databaseManager.getMostFruitlessTwoRecords();
+        Pair<MessageRecord, MessageRecord> possibleParents = databaseManager.getIdealParentRecords();
 
         log.info("---- Possible parents for a new message are:");
         log.info(possibleParents.getKey().toString());

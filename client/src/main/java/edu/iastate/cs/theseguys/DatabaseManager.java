@@ -141,7 +141,7 @@ public class DatabaseManager {
      *
      * @return
      */
-    public Pair<MessageRecord, MessageRecord> getMostFruitlessTwoRecords() {
+    public Pair<MessageRecord, MessageRecord> getIdealParentRecords() {
         Iterable<MessageRecord> records = getRecordsByHowFruitless();
         return new Pair<>(Iterables.getFirst(records, null), Iterables.get(records, 1, null));
     }
