@@ -34,9 +34,13 @@ public class RegisterController {
     }
 
     @FXML
-    protected void cancel(ActionEvent event) throws IOException {
-        Stage stage = (Stage) username.getScene().getWindow();
-        Parent root = FXMLLoader.load(getClass().getResource("login.fxml"));
+    protected void cancel(ActionEvent event) throws IOException{
+        changeScreens("login.fxml");
+    }
+    
+    private void changeScreens(String screen) throws IOException{
+    	Stage stage = (Stage) username.getScene().getWindow();
+        Parent root = FXMLLoader.load(getClass().getResource(screen));
         Scene scene = new Scene(root);
         stage.setScene(scene);
         stage.show();

@@ -14,7 +14,7 @@ public class ClientUI extends Application {
     public void start(Stage stage) throws Exception {
         Parent root = FXMLLoader.load(getClass().getResource("login.fxml"));
         stage.setTitle("TEST");
-        stage.setScene(new Scene(root, 400, 375));
+        stage.setScene(new Scene(root, 800, 600));
         stage.show();
 
     }
