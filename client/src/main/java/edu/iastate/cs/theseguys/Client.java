@@ -55,6 +55,8 @@ public class Client implements CommandLineRunner {
     private ServerManager serverManager;
     @Autowired
     private DatabaseManager databaseManager;
+    @Autowired
+    private SpringFXMLLoader springFXMLLoader;
 
 
     public static void main(String[] args) {
@@ -83,7 +85,7 @@ public class Client implements CommandLineRunner {
 
             Parent root = null;
             try {
-                root = new FXMLLoader(getClass().getResource("/fxml/login.fxml")).load();
+                root = springFXMLLoader.load("/fxml/login.fxml");
                 stage.setScene(new Scene(root, 800, 600));
             } catch (IOException e) {
                 e.printStackTrace();

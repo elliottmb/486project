@@ -1,8 +1,9 @@
 package edu.iastate.cs.theseguys.ui;
 
+import edu.iastate.cs.theseguys.Client;
+import edu.iastate.cs.theseguys.SpringFXMLLoader;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -10,9 +11,12 @@ import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 
+@Component
 public class RegisterController {
 
     @FXML
@@ -28,6 +32,11 @@ public class RegisterController {
     @FXML
     private Label error;
 
+    @Autowired
+    private SpringFXMLLoader springFXMLLoader;
+    @Autowired
+    private Client client;
+
     @FXML
     protected void register(ActionEvent event) {
         error.setText("TODO");
@@ -40,7 +49,7 @@ public class RegisterController {
 
     private void changeScreens(String screen) throws IOException {
         Stage stage = (Stage) username.getScene().getWindow();
-        Parent root = FXMLLoader.load(getClass().getResource(screen));
+        Parent root = springFXMLLoader.load(screen);
         Scene scene = new Scene(root);
         stage.setScene(scene);
         stage.show();
