@@ -1,18 +1,15 @@
 package edu.iastate.cs.theseguys.network;
 
-import edu.iastate.cs.theseguys.hibernate.Message;
-
 /**
  * Network response containing a single message.  Sent from
  * client B to client A whenever A sends a LatestMessageRequest
  * to B
- *
  */
 public class LatestMessageResponse extends AbstractMessage {
     private static final long serialVersionUID = -2575582116681604249L;
-    private Message message;
+    private MessageDatagram message;
 
-    public LatestMessageResponse(Message message) {
+    public LatestMessageResponse(MessageDatagram message) {
         this.message = message;
     }
 
@@ -23,7 +20,7 @@ public class LatestMessageResponse extends AbstractMessage {
                 '}';
     }
 
-    public Message getMessage() {
+    public MessageDatagram getMessage() {
         return this.message;
     }
 }

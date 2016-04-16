@@ -1,6 +1,6 @@
 package edu.iastate.cs.theseguys.database;
 
-import edu.iastate.cs.theseguys.hibernate.Message;
+import org.springframework.data.querydsl.QueryDslPredicateExecutor;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
@@ -13,9 +13,15 @@ import java.util.UUID;
  *
  */
 @Repository
-public interface MessageRepository extends CrudRepository<Message, UUID> {
+public interface MessageRepository extends CrudRepository<MessageRecord, UUID>, QueryDslPredicateExecutor<MessageRecord> {
 
-    List<Message> findByUserId(UUID uuid);
+    List<MessageRecord> findByUserId(UUID uuid);
 
-    List<Message> findByTimestamp(Timestamp timestamp);
+    List<MessageRecord> findByTimestamp(Timestamp timestamp);
+
+    MessageRecord findFirstByOrderByTimestampAsc();
+
+    MessageRecord findFirstByOrderByTimestampDesc();
+
+    List<MessageRecord> findFirst10ByOrderByTimestampDesc();
 }
