@@ -114,6 +114,8 @@ public class DatabaseManager {
                     log.info("Adding back to the end of the queue, " + headDatagram.getId());
                     waiting.add(head);
                 }
+            } else {
+                log.info("We already have " + headDatagram.getId() + ", removing from queue");
             }
         }
         if (!ready.isEmpty()) {

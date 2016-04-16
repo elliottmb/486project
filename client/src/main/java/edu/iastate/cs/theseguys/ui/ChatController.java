@@ -41,7 +41,8 @@ public class ChatController {
         if (!input.getText().equals("")) {
             chat.appendText(input.getText() + "\n");
             Pair<MessageRecord, MessageRecord> parents = client.getDatabaseManager().getIdealParentRecords();
-            client.getDatabaseManager().getReady().push(new Pair<>(-1L, new MessageDatagram(UUID.randomUUID(), UUID.randomUUID(), parents.getKey().getId(), parents.getValue().getId(), input.getText(), new Timestamp(System.currentTimeMillis()), new byte[256])));
+            MessageDatagram messageDatagram = new MessageDatagram(UUID.randomUUID(), UUID.randomUUID(), parents.getKey().getId(), parents.getValue().getId(), input.getText(), new Timestamp(System.currentTimeMillis()), new byte[256]);
+            client.getDatabaseManager().getWaiting().push(new Pair<>(-1L, messageDatagram));
         }
     }
 

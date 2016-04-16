@@ -7,7 +7,6 @@ import edu.iastate.cs.theseguys.distributed.ServerManager;
 import edu.iastate.cs.theseguys.network.MessageDatagram;
 import javafx.application.Platform;
 import javafx.embed.swing.JFXPanel;
-import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
@@ -68,6 +67,12 @@ public class Client implements CommandLineRunner {
                 .run(args);
     }
 
+    public void dispose() {
+        clientManager.dispose();
+        serverManager.dispose();
+        databaseManager.dispose();
+    }
+
     @Override
     public void run(String... args) throws Exception {
         final CountDownLatch latch = new CountDownLatch(1);
@@ -82,6 +87,13 @@ public class Client implements CommandLineRunner {
         Platform.runLater(() -> {
             Stage stage = new Stage();
             stage.setTitle("TEST");
+            stage.setOnCloseRequest(
+                    event -> {
+                        dispose();
+                        Platform.exit();
+                        System.exit(0);
+                    }
+            );
 
             Parent root = null;
             try {
@@ -202,23 +214,41 @@ public class Client implements CommandLineRunner {
 
         System.out.print("> ");
         String s;
+        Pair<MessageRecord, MessageRecord> idealParentRecords;
         while ((s = in.readLine()) != null) {
             if (":q".equalsIgnoreCase(s))
                 break;
 
-            System.out.println("We are only locally handling this, for now");
-            MessageDatagram test = new MessageDatagram(
-                    UUID.randomUUID(),
-                    userOne,
-                    messageB.getId(),
-                    messageC.getId(),
-                    s,
-                    new Timestamp(System.currentTimeMillis()),
-                    new byte[256]
-            );
+            if (s.toLowerCase().startsWith(":c")) {
+                String[] arguments = s.split(" ");
+                if (arguments.length == 3) {
+                    InetSocketAddress inetSocketAddress = new InetSocketAddress(arguments[1], Integer.parseInt(arguments[2]));
+                    clientManager.connect(inetSocketAddress);
+                } else {
+                    System.out.println("Expecting two arguments, got " + (arguments.length - 1));
+                }
+                continue;
+            } else {
+                if (":l".equalsIgnoreCase(s)) {
+                    System.out.println(clientManager.getService().getManagedSessions());
+                } else {
 
-            databaseManager.getWaiting().push(new Pair<>(123912039L, test));
+                    idealParentRecords = databaseManager.getIdealParentRecords();
 
+                    System.out.println("We are only locally handling this, for now");
+                    MessageDatagram test = new MessageDatagram(
+                            UUID.randomUUID(),
+                            userOne,
+                            idealParentRecords.getKey().getId(),
+                            idealParentRecords.getValue().getId(),
+                            s,
+                            new Timestamp(System.currentTimeMillis()),
+                            new byte[256]
+                    );
+
+                    databaseManager.getWaiting().push(new Pair<>(-1L, test));
+                }
+            }
             System.out.print("> ");
         }
 
@@ -248,9 +278,7 @@ public class Client implements CommandLineRunner {
         log.info("Left Children: " + youngest.getLeftChildren().toString());
         log.info("Right Children: " + youngest.getRightChildren().toString());
 
-        clientManager.dispose();
-        serverManager.dispose();
-        databaseManager.dispose();
+        dispose();
     }
 
     public AuthorityManager getAuthorityManager() {
