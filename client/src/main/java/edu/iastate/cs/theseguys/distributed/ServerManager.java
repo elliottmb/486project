@@ -20,7 +20,7 @@ import java.net.InetSocketAddress;
 @Component
 public class ServerManager extends AbstractIoAcceptorManager {
     private static final Logger log = LoggerFactory.getLogger(ServerManager.class);
-    private static int port;
+    private int port;
 
     @Autowired
     private Client client;
@@ -46,10 +46,23 @@ public class ServerManager extends AbstractIoAcceptorManager {
     }
 
     public void run() throws IOException, InterruptedException {
-        bind(new InetSocketAddress(port));
-        //awaitConnections();
+        // Try the first 99, catching the exceptions
+        for (int i = 0; i < 100; i++) {
+            try {
+                bind(new InetSocketAddress(port));
+                log.info("Client Producing Server bound on port " + port);
+                break;
+            } catch (IOException e) {
+                // If we are here, and this one also fails, throw the exception
+                if (i == 99) {
+                    log.info("Failed to bind on port range, quitting");
+                    throw e;
+                }
+                log.info("Failed to bind on port " + port + ", attempting +1");
+                port++;
+            }
+        }
 
-        //acceptor.dispose();
     }
 
     private void awaitConnections() throws InterruptedException {

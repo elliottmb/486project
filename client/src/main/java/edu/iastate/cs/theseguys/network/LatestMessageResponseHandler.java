@@ -1,6 +1,7 @@
 package edu.iastate.cs.theseguys.network;
 
 import edu.iastate.cs.theseguys.DatabaseManager;
+import javafx.util.Pair;
 import org.apache.mina.core.session.IoSession;
 import org.apache.mina.handler.demux.MessageHandler;
 import org.slf4j.Logger;
@@ -21,7 +22,7 @@ public class LatestMessageResponseHandler implements MessageHandler<LatestMessag
 
         MessageDatagram m = message.getMessage();
 
-        // TODO:
+        databaseManager.getWaiting().push(new Pair<>(session.getId(), m));
     }
 }
 

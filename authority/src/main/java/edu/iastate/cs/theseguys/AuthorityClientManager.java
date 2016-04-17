@@ -39,7 +39,7 @@ import edu.iastate.cs.theseguys.network.VerificationResponse;
 public class AuthorityClientManager {
 	
 	private static final Logger log = LoggerFactory.getLogger(AuthorityClientManager.class);
-	private static final int PORT = 5050;
+	private static final int PORT = 9090;
 	
 	private IoAcceptor acceptor;
 	private CustomDemuxingIoHandler ioHandler;
@@ -83,10 +83,6 @@ public class AuthorityClientManager {
         	ioe.printStackTrace();
         	
         }
-       
-		
-		
-		
 	}
 	
 

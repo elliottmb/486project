@@ -1,7 +1,11 @@
 package edu.iastate.cs.theseguys.client;
 
+
 import java.net.InetSocketAddress;
 
+
+
+import edu.iastate.cs.theseguys.network.*;
 
 import org.apache.mina.core.RuntimeIoException;
 import org.apache.mina.core.future.ConnectFuture;
@@ -20,21 +24,16 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
-
-import edu.iastate.cs.theseguys.network.LoggingMessageHandler;
-import edu.iastate.cs.theseguys.network.LoginRequest;
-import edu.iastate.cs.theseguys.network.LoginResponse;
-import edu.iastate.cs.theseguys.network.RegisterRequest;
-import edu.iastate.cs.theseguys.network.RegisterResponse;
+import java.net.InetSocketAddress;
 
 @Configuration
 @ComponentScan
 @EnableAutoConfiguration
-public class TestClient implements CommandLineRunner{
+public class TestClient implements CommandLineRunner {
     private static final Logger log = LoggerFactory.getLogger(TestClient.class);
 
-	
-	public static void main(String[] args) {
+
+    public static void main(String[] args) {
         log.info("I touch myself");
 
         SpringApplication.run(TestClient.class, args);
@@ -47,10 +46,9 @@ public class TestClient implements CommandLineRunner{
         DemuxingIoHandler demuxIoHandler = new DemuxingIoHandler();
 
 
-
         demuxIoHandler.addSentMessageHandler(RegisterRequest.class, new LoggingMessageHandler());
         demuxIoHandler.addSentMessageHandler(LoginRequest.class, new LoggingMessageHandler());
-        
+
         demuxIoHandler.addReceivedMessageHandler(RegisterResponse.class, new LoggingMessageHandler());
         demuxIoHandler.addReceivedMessageHandler(LoginResponse.class, new LoggingMessageHandler());
 
@@ -62,7 +60,7 @@ public class TestClient implements CommandLineRunner{
         int attempts = 0;
         while (attempts < 10) {
             try {
-                ConnectFuture future = connector.connect(new InetSocketAddress("localhost", 5050));
+                ConnectFuture future = connector.connect(new InetSocketAddress("localhost", 9090));
                 future.awaitUninterruptibly();
                 session = future.getSession();
                 break;
@@ -74,13 +72,19 @@ public class TestClient implements CommandLineRunner{
             }
         }
 
-        //session.write(new RegisterRequest("jake", "caithamer"));
-        session.write(new LoginRequest("jake", "caithamer", 1234));
+
+        
        
 
-        // wait until the summation is done
-        session.getCloseFuture().awaitUninterruptibly();
+        if (session != null) {
+        	//session.write(new RegisterRequest("jake", "caithamer"));
+            session.write(new LoginRequest("jake", "caithamer", 1234));
 
+
+
+            // wait until the summation is done
+            session.getCloseFuture().awaitUninterruptibly();
+        }
         connector.dispose();
     }
 

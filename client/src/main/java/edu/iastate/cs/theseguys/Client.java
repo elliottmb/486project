@@ -4,22 +4,32 @@ import edu.iastate.cs.theseguys.database.MessageRecord;
 import edu.iastate.cs.theseguys.database.MessageRepository;
 import edu.iastate.cs.theseguys.distributed.ClientManager;
 import edu.iastate.cs.theseguys.distributed.ServerManager;
+import edu.iastate.cs.theseguys.network.MessageDatagram;
+import javafx.application.Platform;
+import javafx.embed.swing.JFXPanel;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.stage.Stage;
 import javafx.util.Pair;
 import org.apache.mina.core.future.ConnectFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
-import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
+import javax.swing.*;
+import java.awt.*;
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.InetSocketAddress;
 import java.sql.Timestamp;
 import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * Client that runs on a user's machine.  Maintains a database
@@ -44,16 +54,69 @@ public class Client implements CommandLineRunner {
     private ServerManager serverManager;
     @Autowired
     private DatabaseManager databaseManager;
+    @Autowired
+    private SpringFXMLLoader springFXMLLoader;
 
 
     public static void main(String[] args) {
         log.info("I touch myself");
 
-        SpringApplication.run(Client.class, args);
+        new SpringApplicationBuilder(Client.class)
+                .headless(false)
+                .web(false)
+                .run(args);
+    }
+
+    public void dispose() {
+        clientManager.dispose();
+        serverManager.dispose();
+        databaseManager.dispose();
     }
 
     @Override
     public void run(String... args) throws Exception {
+        final CountDownLatch latch = new CountDownLatch(1);
+        SwingUtilities.invokeLater(() -> {
+            JFXPanel jfxPanel = new JFXPanel(); // initializes JavaFX environment
+            jfxPanel.setSize(800, 600);
+            jfxPanel.setVisible(true);
+            latch.countDown();
+        });
+        latch.await();
+
+        Platform.runLater(() -> {
+            Stage stage = new Stage();
+            stage.setTitle("TEST");
+            stage.setOnCloseRequest(
+                    event -> {
+                        dispose();
+                        Platform.exit();
+                        System.exit(0);
+                    }
+            );
+
+            Parent root = null;
+            try {
+                root = springFXMLLoader.load("/fxml/login.fxml");
+                stage.setScene(new Scene(root, 800, 600));
+            } catch (IOException e) {
+                e.printStackTrace();
+                System.exit(0);
+            }
+            stage.show();
+
+            //Application.launch(ClientUI.class, args);
+        });
+        /*
+        EventQueue.invokeLater(
+                () -> {
+                    JFrame frame = new SimpleFrame(this);
+
+
+                }
+        );*/
+
+
         UUID userOne = UUID.randomUUID();
         UUID userTwo = UUID.randomUUID();
 
@@ -151,15 +214,45 @@ public class Client implements CommandLineRunner {
 
         System.out.print("> ");
         String s;
+        Pair<MessageRecord, MessageRecord> idealParentRecords;
         while ((s = in.readLine()) != null) {
             if (":q".equalsIgnoreCase(s))
                 break;
 
-            System.out.println("We would be handling your message, but we're too busy");
+            if (s.toLowerCase().startsWith(":c")) {
+                String[] arguments = s.split(" ");
+                if (arguments.length == 3) {
+                    InetSocketAddress inetSocketAddress = new InetSocketAddress(arguments[1], Integer.parseInt(arguments[2]));
+                    clientManager.connect(inetSocketAddress);
+                } else {
+                    System.out.println("Expecting two arguments, got " + (arguments.length - 1));
+                }
+                continue;
+            } else {
+                if (":l".equalsIgnoreCase(s)) {
+                    System.out.println(clientManager.getService().getManagedSessions());
+                } else {
+
+                    idealParentRecords = databaseManager.getIdealParentRecords();
+
+                    System.out.println("We are only locally handling this, for now");
+                    MessageDatagram test = new MessageDatagram(
+                            UUID.randomUUID(),
+                            userOne,
+                            idealParentRecords.getKey().getId(),
+                            idealParentRecords.getValue().getId(),
+                            s,
+                            new Timestamp(System.currentTimeMillis()),
+                            new byte[256]
+                    );
+
+                    databaseManager.getWaiting().push(new Pair<>(-1L, test));
+                }
+            }
             System.out.print("> ");
         }
 
-        Pair<MessageRecord, MessageRecord> possibleParents = databaseManager.getMostFruitlessTwoRecords();
+        Pair<MessageRecord, MessageRecord> possibleParents = databaseManager.getIdealParentRecords();
 
         log.info("---- Possible parents for a new message are:");
         log.info(possibleParents.getKey().toString());
@@ -169,14 +262,28 @@ public class Client implements CommandLineRunner {
         log.info(possibleParents.getValue().getFather().toString());
         log.info(possibleParents.getValue().getMother().toString());
 
-        clientManager.dispose();
-        serverManager.dispose();
+
+        try {
+            Thread.sleep(1000);                 //1000 milliseconds is one second.
+        } catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
+        }
+
+        youngest = databaseManager.getLatestMessage();
+
+        log.info("---- Last submitted message ----");
+        log.info("Self: " + youngest.toString());
+        log.info("Father: " + youngest.getFather().toString());
+        log.info("Mother: " + youngest.getMother().toString());
+        log.info("Left Children: " + youngest.getLeftChildren().toString());
+        log.info("Right Children: " + youngest.getRightChildren().toString());
+
+        dispose();
     }
 
     public AuthorityManager getAuthorityManager() {
         return authorityManager;
     }
-
 
     public ClientManager getClientManager() {
         return clientManager;
@@ -188,5 +295,52 @@ public class Client implements CommandLineRunner {
 
     public DatabaseManager getDatabaseManager() {
         return databaseManager;
+    }
+
+    class SimpleFrame extends JFrame {
+        JPanel pnlButton = new JPanel();
+        // Buttons
+        JButton btnAddFlight = new JButton("Add Flight");
+        private Client client;
+
+        public SimpleFrame(Client client) {
+            super("dILC");
+
+            this.client = client;
+            setSize(new Dimension(300, 300));
+            setPreferredSize(new Dimension(300, 300));
+            setMaximumSize(new Dimension(300, 300));
+            setMinimumSize(new Dimension(300, 300));
+            setVisible(true);
+            pack();
+            setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+
+            btnAddFlight.setBounds(60, 400, 220, 30);
+
+            // JPanel bounds
+            pnlButton.setBounds(800, 800, 200, 100);
+
+            // Adding to JFrame
+            pnlButton.add(btnAddFlight);
+            add(pnlButton);
+
+            btnAddFlight.addActionListener(e -> {
+                Pair<MessageRecord, MessageRecord> parents = client.databaseManager.getIdealParentRecords();
+
+                MessageDatagram test = new MessageDatagram(
+                        UUID.randomUUID(),
+                        UUID.randomUUID(),
+                        parents.getKey().getId(),
+                        parents.getValue().getId(),
+                        "From a button!",
+                        new Timestamp(System.currentTimeMillis()),
+                        new byte[256]
+                );
+
+                databaseManager.getWaiting().push(new Pair<>(123912039L, test));
+
+            });
+
+        }
     }
 }

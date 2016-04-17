@@ -26,7 +26,10 @@ public class ClientManager extends AbstractIoConnectorManager {
 
     public ClientManager() {
         super(new NioSocketConnector(), new ClientDemuxingIoHandler());
+
+
     }
+
 
     @PostConstruct
     private void prepareHandlers() {

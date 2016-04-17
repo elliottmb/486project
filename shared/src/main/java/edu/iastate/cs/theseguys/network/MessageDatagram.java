@@ -16,6 +16,16 @@ public class MessageDatagram implements Serializable {
     private final Timestamp timestamp;
     private final byte[] signature;
 
+    public MessageDatagram(UUID id, UUID userId, UUID fatherId, UUID motherId, String messageBody, Timestamp timestamp, byte[] signature) {
+        this.id = id;
+        this.userId = userId;
+        this.fatherId = fatherId;
+        this.motherId = motherId;
+        this.messageBody = messageBody;
+        this.timestamp = timestamp;
+        this.signature = signature;
+    }
+
     public MessageDatagram(MessageRecord messageRecord) {
         this.id = messageRecord.getId();
         this.userId = messageRecord.getUserId();

@@ -10,17 +10,17 @@ import javafx.stage.Stage;
 
 public class ClientUI extends Application {
 
-	@Override
-	public void start(Stage stage) throws Exception {
-		Parent root = FXMLLoader.load(getClass().getResource("login.fxml"));
-		stage.setTitle("TEST");
-		stage.setScene(new Scene(root, 400, 375));
-		stage.show();
-		
-	}
-	
-	public static void main(String[] args) {
-		Application.launch(ClientUI.class, args);
-	}
+    @Override
+    public void start(Stage stage) throws Exception {
+        Parent root = FXMLLoader.load(getClass().getResource("login.fxml"));
+        stage.setTitle("TEST");
+        stage.setScene(new Scene(root, 800, 600));
+        stage.show();
+
+    }
+
+    public static void main(String[] args) {
+        Application.launch(ClientUI.class, args);
+    }
 
 }
