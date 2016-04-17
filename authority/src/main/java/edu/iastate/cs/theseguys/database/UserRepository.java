@@ -25,4 +25,7 @@ public interface UserRepository extends CrudRepository<User, UUID> {
 	
 	List<User> findByUsernameAndPassword(String username, String password);
 	
+	@Query("select case when count(u) > 0 then true else false end from User u where u.username = ?1")
+	boolean existsByUsername(String username);
+	
 }

@@ -34,44 +34,15 @@ public class CentralAuthority implements CommandLineRunner {
 	
 	
     public static void main(String[] args) throws IOException {
-
-    	
-    	
         System.out.println("I touch others");
         
-        
-        
-        //put these in the clientManager
-        
         SpringApplication.run(CentralAuthority.class, args);
-        
-
-//        demuxIoHandler.addReceivedMessageHandler(LatestMessageRequest.class, new LatestMessageRequestHandler());
-//        demuxIoHandler.addReceivedMessageHandler(NewMessageAnnouncement.class, new LoggingMessageHandler());
-//
-//        acceptor.getFilterChain().addLast("logger", new LoggingFilter());
-//        acceptor.getFilterChain().addLast("codec", new ProtocolCodecFilter(new ObjectSerializationCodecFactory()));
-//        acceptor.setHandler(demuxIoHandler);
-//        acceptor.bind(new InetSocketAddress(5050));
-        
-        
-        
-        
-        
-        
-        
-        
-        
     }
+    
     
     @Override
     public void run(String... args) throws Exception {
     	System.out.println("RUNNING");
-    	//clientManager = new AuthorityClientManager();
     }
 
-    public boolean someLibraryMethod() {
-
-        return true;
-    }
 }

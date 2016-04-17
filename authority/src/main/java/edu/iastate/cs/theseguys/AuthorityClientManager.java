@@ -25,7 +25,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import edu.iastate.cs.theseguys.database.DatabaseManager;
-import edu.iastate.cs.theseguys.database.User;
 import edu.iastate.cs.theseguys.model.Peer;
 import edu.iastate.cs.theseguys.network.LoginRequest;
 import edu.iastate.cs.theseguys.network.LoginResponse;
@@ -104,31 +103,9 @@ public class AuthorityClientManager {
 	}
 
 	
-	public boolean userExists(String username, String password)
-	{
-		List<User> matches = databaseManager.getRepository().findByUsernameAndPassword(username, password);
-		if (matches.size()==1)
-		{
-			return true;
-		}
-		if (matches.size() > 1)
-		{
-			log.info("There is a non-unique username:"+username);
-		}
-		
-		return false;
-	}
 	
-	public UUID getUserId(String username)
-	{
-		//get the id assigned to this user in the database
-		return databaseManager.getRepository().getId(username);
-	}
 	
-	public void insertUser(User user)
-	{
-		databaseManager.getRepository().save(user);
-	}
+	
 	
 	public List<Peer> getAllClients()
 	{

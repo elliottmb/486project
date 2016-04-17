@@ -58,7 +58,7 @@ public class TestClient implements CommandLineRunner{
         connector.getFilterChain().addLast("codec", new ProtocolCodecFilter(new ObjectSerializationCodecFactory()));
         connector.setHandler(demuxIoHandler);
 
-        IoSession session;
+        IoSession session = null;
         int attempts = 0;
         while (attempts < 10) {
             try {

@@ -27,7 +27,7 @@ public class RegisterRequestHandler implements MessageHandler<RegisterRequest> {
     	
     	log.info("Received a register request:"+request.getUsername() + " " + request.getPassword());
     	
-    	if (manager.userExists(request.getUsername(), request.getPassword()))
+    	if (manager.getDatabaseManager().userExists(request.getUsername()))
     	{
     		log.info("User already exists");
     		session.write(new RegisterResponse(false, "Username already taken"));
@@ -35,7 +35,7 @@ public class RegisterRequestHandler implements MessageHandler<RegisterRequest> {
     	else
     	{
     		User newUser = new User(UUID.randomUUID(), request.getUsername(), request.getPassword());
-    		manager.insertUser(newUser);
+    		manager.getDatabaseManager().insertUser(newUser);
     		
     		session.write(new RegisterResponse(true, "Account creation successful"));
     	}

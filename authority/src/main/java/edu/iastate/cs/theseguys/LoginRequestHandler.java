@@ -25,9 +25,9 @@ public class LoginRequestHandler implements MessageHandler<LoginRequest> {
     @Override
     public void handleMessage(IoSession session, LoginRequest request) throws Exception {
     	
-    	if (manager.userExists(request.getUsername(), request.getPassword()))
+    	if (manager.getDatabaseManager().userExists(request.getUsername()))
     	{
-    		UUID userID = manager.getUserId(request.getUsername());
+    		UUID userID = manager.getDatabaseManager().getUserId(request.getUsername());
     		manager.addNewClient(session, userID, request.getPort());
     		session.write(new LoginResponse(true, userID));
     	}
