@@ -74,7 +74,8 @@ public class TestClient implements CommandLineRunner{
             }
         }
 
-        session.write(new LoginRequest("barack", "obama", 1234));
+        //session.write(new RegisterRequest("jake", "caithamer"));
+        session.write(new LoginRequest("jake", "caithamer", 1234));
        
 
         // wait until the summation is done

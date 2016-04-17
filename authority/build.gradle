@@ -23,6 +23,7 @@ dependencies {
     compile("com.h2database:h2:1.4.191")
     compile("org.xerial:sqlite-jdbc:3.8.11.2")
     compile("org.apache.mina:mina-core:2.0.13")
+    compile("org.springframework.boot:spring-boot-starter-security")
     compile project(':shared')
     
     testCompile("junit:junit")
