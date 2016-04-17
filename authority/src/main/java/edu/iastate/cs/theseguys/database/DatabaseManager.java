@@ -16,7 +16,14 @@ public class DatabaseManager {
 	private static final Logger log = LoggerFactory.getLogger(DatabaseManager.class);
 
 	//@Autowired
-	private BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+	private BCryptPasswordEncoder encoder;
+
+	
+	
+	public DatabaseManager()
+	{
+		encoder = new BCryptPasswordEncoder();
+	}
 
     @Autowired
     private UserRepository repository;
