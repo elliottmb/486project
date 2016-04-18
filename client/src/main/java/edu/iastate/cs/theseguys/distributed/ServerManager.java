@@ -51,6 +51,7 @@ public class ServerManager extends AbstractIoAcceptorManager {
             SslFilter sslFilter = new SslFilter(sslContext);
             getService().getFilterChain().addFirst("sslFilter", sslFilter);
         } catch (NoSuchAlgorithmException | KeyManagementException e) {
+            log.warn("Failed to establish SSLFitler");
             e.printStackTrace();
         }
         getService().getFilterChain().addLast("logger", new LoggingFilter());
@@ -74,25 +75,6 @@ public class ServerManager extends AbstractIoAcceptorManager {
                 port++;
             }
         }
-
-    }
-
-    private void awaitConnections() throws InterruptedException {
-        while (getService().getManagedSessionCount() == 0) {
-            log.info("No clients connected");
-            log.info("R: " + getService().getStatistics().getReadBytesThroughput() +
-                    ", W: " + getService().getStatistics().getWrittenBytesThroughput());
-            Thread.sleep(3000);
-        }
-
-        while (getService().getManagedSessionCount() > 0) {
-            log.info("One or more clients connected");
-            log.info("R: " + getService().getStatistics().getReadBytesThroughput() +
-                    ", W: " + getService().getStatistics().getWrittenBytesThroughput());
-            Thread.sleep(3000);
-        }
-
-        log.info("No clients connected, cleaning up this test server. Bye!");
     }
 
 }

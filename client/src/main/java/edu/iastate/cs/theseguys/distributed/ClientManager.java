@@ -45,6 +45,7 @@ public class ClientManager extends AbstractIoConnectorManager {
             SslFilter sslFilter = new SslFilter(sslContext);
             getService().getFilterChain().addFirst("sslFilter", sslFilter);
         } catch (NoSuchAlgorithmException | KeyManagementException e) {
+            log.warn("Failed to establish SSLFitler");
             e.printStackTrace();
         }
         getService().getFilterChain().addLast("logger", new LoggingFilter());
