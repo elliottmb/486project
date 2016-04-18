@@ -30,7 +30,6 @@ public class ClientManager extends AbstractIoConnectorManager {
 
     }
 
-
     @PostConstruct
     private void prepareHandlers() {
         getIoHandler().addSentMessageHandler(LatestMessageRequest.class, MessageHandler.NOOP);
