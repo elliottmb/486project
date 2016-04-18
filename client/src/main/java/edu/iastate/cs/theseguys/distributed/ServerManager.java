@@ -6,6 +6,7 @@ import edu.iastate.cs.theseguys.network.*;
 import org.apache.mina.filter.codec.ProtocolCodecFilter;
 import org.apache.mina.filter.codec.serialization.ObjectSerializationCodecFactory;
 import org.apache.mina.filter.logging.LoggingFilter;
+import org.apache.mina.filter.ssl.SslFilter;
 import org.apache.mina.handler.demux.MessageHandler;
 import org.apache.mina.transport.socket.nio.NioSocketAcceptor;
 import org.slf4j.Logger;
@@ -14,8 +15,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
+import javax.net.ssl.SSLContext;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
 
 @Component
 public class ServerManager extends AbstractIoAcceptorManager {
@@ -41,6 +45,14 @@ public class ServerManager extends AbstractIoAcceptorManager {
         getIoHandler().addReceivedMessageHandler(NewMessageAnnouncement.class, loggingMessageHandler);
         getIoHandler().addSentMessageHandler(LatestMessageResponse.class, MessageHandler.NOOP);
 
+        try {
+            SSLContext sslContext = SSLContext.getInstance("TLS");
+            sslContext.init(null, null, null);
+            SslFilter sslFilter = new SslFilter(sslContext);
+            getService().getFilterChain().addFirst("sslFilter", sslFilter);
+        } catch (NoSuchAlgorithmException | KeyManagementException e) {
+            e.printStackTrace();
+        }
         getService().getFilterChain().addLast("logger", new LoggingFilter());
         getService().getFilterChain().addLast("codec", new ProtocolCodecFilter(new ObjectSerializationCodecFactory()));
     }
