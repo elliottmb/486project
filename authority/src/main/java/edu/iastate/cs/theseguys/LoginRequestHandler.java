@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 
 import edu.iastate.cs.theseguys.network.LoginRequest;
 import edu.iastate.cs.theseguys.network.LoginResponse;
+import edu.iastate.cs.theseguys.security.AuthoritySecurity;
 
 public class LoginRequestHandler implements MessageHandler<LoginRequest> {
 
@@ -29,12 +30,14 @@ public class LoginRequestHandler implements MessageHandler<LoginRequest> {
     	{
     		UUID userID = manager.getUserId(request.getUsername());
     		manager.addNewClient(session, userID, request.getPort());
-    		session.write(new LoginResponse(true, userID));
+    		AuthoritySecurity authSec = new AuthoritySecurity();
+    		session.write(new LoginResponse(true, userID, authSec.getPublicKey()));
+    		
     	}
     	else
     	{
     		//reject this login attempt
-    		session.write(new LoginResponse(false, new UUID(0, 0)));
+    		session.write(new LoginResponse(false, new UUID(0, 0), null));
     	}
     	
     	log.info("CONNECTED CLIENTS: " + manager.getConnectedClients());
