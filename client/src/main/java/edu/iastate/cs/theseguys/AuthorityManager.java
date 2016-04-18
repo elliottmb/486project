@@ -1,9 +1,9 @@
 package edu.iastate.cs.theseguys;
 
-import edu.iastate.cs.theseguys.distributed.ClientDemuxingIoHandler;
 import org.apache.mina.filter.codec.ProtocolCodecFilter;
 import org.apache.mina.filter.codec.serialization.ObjectSerializationCodecFactory;
 import org.apache.mina.filter.logging.LoggingFilter;
+import org.apache.mina.handler.demux.DemuxingIoHandler;
 import org.apache.mina.transport.socket.nio.NioSocketConnector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,7 +16,7 @@ public class AuthorityManager extends AbstractIoConnectorManager {
     private static final Logger log = LoggerFactory.getLogger(AuthorityManager.class);
 
     public AuthorityManager() {
-        super(new NioSocketConnector(), new ClientDemuxingIoHandler());
+        super(new NioSocketConnector(), new DemuxingIoHandler());
     }
 
     @PostConstruct

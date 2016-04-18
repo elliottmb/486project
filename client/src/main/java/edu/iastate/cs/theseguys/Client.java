@@ -108,6 +108,12 @@ public class Client implements CommandLineRunner {
 
             //Application.launch(ClientUI.class, args);
         });
+
+        ConnectFuture authorityFuture = authorityManager.connect(new InetSocketAddress(9090));
+
+        authorityFuture.awaitUninterruptibly();
+
+        // TODO: Actually check for connectivity and handle retrying.
         /*
         EventQueue.invokeLater(
                 () -> {
