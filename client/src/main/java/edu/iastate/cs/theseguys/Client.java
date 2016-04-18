@@ -70,6 +70,7 @@ public class Client implements CommandLineRunner {
     public void dispose() {
         clientManager.dispose();
         serverManager.dispose();
+        authorityManager.dispose();
         databaseManager.dispose();
     }
 
