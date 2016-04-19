@@ -65,3 +65,6 @@ build/
 
 ## H2 Database Files
 *.db
+
+## Security
+*.key
