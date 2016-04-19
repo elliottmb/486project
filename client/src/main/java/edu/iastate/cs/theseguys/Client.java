@@ -273,7 +273,7 @@ public class Client implements CommandLineRunner {
                                 System.out.println("We are only locally handling this, for now");
                                 MessageDatagram test = new MessageDatagram(
                                         UUID.randomUUID(),
-                                        userOne,
+                                        authorityManager.getUserId(),
                                         idealParentRecords.getKey().getId(),
                                         idealParentRecords.getValue().getId(),
                                         s,

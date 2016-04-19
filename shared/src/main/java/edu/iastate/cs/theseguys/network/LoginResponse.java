@@ -15,7 +15,7 @@ public class LoginResponse extends AbstractMessage {
         this.pubKey = key;
     }
 
-    public boolean getSuccess() {
+    public boolean isSuccess() {
         return success;
     }
 

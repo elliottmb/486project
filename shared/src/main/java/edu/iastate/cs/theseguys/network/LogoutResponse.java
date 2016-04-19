@@ -9,8 +9,14 @@ public class LogoutResponse extends AbstractMessage {
         this.confirmed = confirmed;
     }
 
+    @Override
+    public String toString() {
+        return "LogoutResponse{" +
+                "confirmed=" + confirmed +
+                '}';
+    }
 
-    public boolean getConfirmed() {
+    public boolean isConfirmed() {
         return confirmed;
     }
 
