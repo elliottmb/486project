@@ -2,6 +2,8 @@ package edu.iastate.cs.theseguys;
 
 import edu.iastate.cs.theseguys.network.LoginRequest;
 import edu.iastate.cs.theseguys.network.LoginResponse;
+import edu.iastate.cs.theseguys.network.RegisterRequest;
+import edu.iastate.cs.theseguys.network.RegisterResponse;
 import org.apache.mina.filter.codec.ProtocolCodecFilter;
 import org.apache.mina.filter.codec.serialization.ObjectSerializationCodecFactory;
 import org.apache.mina.filter.logging.LoggingFilter;
@@ -33,6 +35,8 @@ public class AuthorityManager extends AbstractIoConnectorManager {
     private void prepareHandlers() {
         getIoHandler().addSentMessageHandler(LoginRequest.class, MessageHandler.NOOP);
         getIoHandler().addReceivedMessageHandler(LoginResponse.class, MessageHandler.NOOP); // TODO: Actually handle
+        getIoHandler().addSentMessageHandler(RegisterRequest.class, MessageHandler.NOOP);
+        getIoHandler().addReceivedMessageHandler(RegisterResponse.class, MessageHandler.NOOP); // TODO: Actually handle
         getService().getFilterChain().addLast("logger", new LoggingFilter());
         getService().getFilterChain().addLast("codec", new ProtocolCodecFilter(new ObjectSerializationCodecFactory()));
     }

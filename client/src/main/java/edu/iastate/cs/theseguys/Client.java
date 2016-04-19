@@ -6,6 +6,7 @@ import edu.iastate.cs.theseguys.distributed.ClientManager;
 import edu.iastate.cs.theseguys.distributed.ServerManager;
 import edu.iastate.cs.theseguys.network.LoginRequest;
 import edu.iastate.cs.theseguys.network.MessageDatagram;
+import edu.iastate.cs.theseguys.network.RegisterRequest;
 import javafx.application.Platform;
 import javafx.embed.swing.JFXPanel;
 import javafx.scene.Parent;
@@ -220,7 +221,7 @@ public class Client implements CommandLineRunner {
 
         BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
 
-        System.out.println("Please login: (:l username password");
+        System.out.println("Please login (:l username password) or register (:r username password)");
         System.out.print("> ");
         String s;
         Pair<MessageRecord, MessageRecord> idealParentRecords;
@@ -229,46 +230,63 @@ public class Client implements CommandLineRunner {
                 break;
 
             if (s.toLowerCase().startsWith(":l ")) {
-                String[] arguments = s.split(" ");
-                if (arguments.length == 3) {
-                    InetSocketAddress serverAddress = (InetSocketAddress) serverManager.getService().getLocalAddress();
-                    authorityManager.write(new LoginRequest(arguments[1], arguments[2], serverAddress.getPort()));
+                if (authorityManager.isLoggedIn()) {
+                    System.out.println("Please log out first using :loff");
                 } else {
-                    System.out.println("Expecting two arguments, got " + (arguments.length - 1));
+                    String[] arguments = s.split(" ");
+                    if (arguments.length == 3) {
+                        InetSocketAddress serverAddress = (InetSocketAddress) serverManager.getService().getLocalAddress();
+                        authorityManager.write(new LoginRequest(arguments[1], arguments[2], serverAddress.getPort()));
+                    } else {
+                        System.out.println("Expecting two arguments, got " + (arguments.length - 1));
+                    }
                 }
             } else {
-                if (authorityManager.isLoggedIn()) {
-                    if (s.toLowerCase().startsWith(":c")) {
+                if (s.toLowerCase().startsWith(":r ")) {
+                    if (authorityManager.isLoggedIn()) {
+                        System.out.println("Please log out first using :loff");
+                    } else {
                         String[] arguments = s.split(" ");
                         if (arguments.length == 3) {
-                            InetSocketAddress inetSocketAddress = new InetSocketAddress(arguments[1], Integer.parseInt(arguments[2]));
-                            clientManager.connect(inetSocketAddress);
+                            authorityManager.write(new RegisterRequest(arguments[1], arguments[2]));
                         } else {
                             System.out.println("Expecting two arguments, got " + (arguments.length - 1));
                         }
-                    } else {
-                        if (":l".equalsIgnoreCase(s)) {
-                            System.out.println(clientManager.getService().getManagedSessions());
-                        } else {
-
-                            idealParentRecords = databaseManager.getIdealParentRecords();
-
-                            System.out.println("We are only locally handling this, for now");
-                            MessageDatagram test = new MessageDatagram(
-                                    UUID.randomUUID(),
-                                    userOne,
-                                    idealParentRecords.getKey().getId(),
-                                    idealParentRecords.getValue().getId(),
-                                    s,
-                                    new Timestamp(System.currentTimeMillis()),
-                                    new byte[256]
-                            );
-
-                            databaseManager.getWaiting().push(new Pair<>(-1L, test));
-                        }
                     }
                 } else {
-                    System.out.println("Please login: (:l username password");
+                    if (authorityManager.isLoggedIn()) {
+                        if (s.toLowerCase().startsWith(":c")) {
+                            String[] arguments = s.split(" ");
+                            if (arguments.length == 3) {
+                                InetSocketAddress inetSocketAddress = new InetSocketAddress(arguments[1], Integer.parseInt(arguments[2]));
+                                clientManager.connect(inetSocketAddress);
+                            } else {
+                                System.out.println("Expecting two arguments, got " + (arguments.length - 1));
+                            }
+                        } else {
+                            if (":l".equalsIgnoreCase(s)) {
+                                System.out.println(clientManager.getService().getManagedSessions());
+                            } else {
+
+                                idealParentRecords = databaseManager.getIdealParentRecords();
+
+                                System.out.println("We are only locally handling this, for now");
+                                MessageDatagram test = new MessageDatagram(
+                                        UUID.randomUUID(),
+                                        userOne,
+                                        idealParentRecords.getKey().getId(),
+                                        idealParentRecords.getValue().getId(),
+                                        s,
+                                        new Timestamp(System.currentTimeMillis()),
+                                        new byte[256]
+                                );
+
+                                databaseManager.getWaiting().push(new Pair<>(-1L, test));
+                            }
+                        }
+                    } else {
+                        System.out.println("Please login (:l username password) or register (:r username password)");
+                    }
                 }
             }
             System.out.print("> ");
@@ -346,22 +364,24 @@ public class Client implements CommandLineRunner {
             pnlButton.add(btnAddFlight);
             add(pnlButton);
 
-            btnAddFlight.addActionListener(e -> {
-                Pair<MessageRecord, MessageRecord> parents = client.databaseManager.getIdealParentRecords();
+            btnAddFlight.addActionListener(
+                    e -> {
+                        Pair<MessageRecord, MessageRecord> parents = client.databaseManager.getIdealParentRecords();
 
-                MessageDatagram test = new MessageDatagram(
-                        UUID.randomUUID(),
-                        UUID.randomUUID(),
-                        parents.getKey().getId(),
-                        parents.getValue().getId(),
-                        "From a button!",
-                        new Timestamp(System.currentTimeMillis()),
-                        new byte[256]
-                );
+                        MessageDatagram test = new MessageDatagram(
+                                UUID.randomUUID(),
+                                UUID.randomUUID(),
+                                parents.getKey().getId(),
+                                parents.getValue().getId(),
+                                "From a button!",
+                                new Timestamp(System.currentTimeMillis()),
+                                new byte[256]
+                        );
 
-                databaseManager.getWaiting().push(new Pair<>(123912039L, test));
+                        databaseManager.getWaiting().push(new Pair<>(123912039L, test));
 
-            });
+                    }
+            );
 
         }
     }

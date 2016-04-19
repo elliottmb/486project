@@ -9,8 +9,7 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * Interface to access the Client's database.  
- *
+ * Interface to access the Client's database.
  */
 @Repository
 public interface MessageRepository extends CrudRepository<MessageRecord, UUID>, QueryDslPredicateExecutor<MessageRecord> {
