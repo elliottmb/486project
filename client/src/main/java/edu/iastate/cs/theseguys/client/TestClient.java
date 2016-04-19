@@ -1,6 +1,12 @@
 package edu.iastate.cs.theseguys.client;
 
+
+import java.net.InetSocketAddress;
+
+
+
 import edu.iastate.cs.theseguys.network.*;
+
 import org.apache.mina.core.RuntimeIoException;
 import org.apache.mina.core.future.ConnectFuture;
 import org.apache.mina.core.service.IoConnector;
@@ -66,8 +72,14 @@ public class TestClient implements CommandLineRunner {
             }
         }
 
+
+        
+       
+
         if (session != null) {
-            session.write(new LoginRequest("barack", "obama", 1234));
+        	//session.write(new RegisterRequest("jake", "caithamer"));
+            session.write(new LoginRequest("jake", "caithamer", 1234));
+
 
 
             // wait until the summation is done

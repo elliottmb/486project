@@ -6,6 +6,9 @@ import org.apache.mina.core.session.IoSession;
 import org.apache.mina.handler.demux.MessageHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+
 
 import edu.iastate.cs.theseguys.database.User;
 import edu.iastate.cs.theseguys.network.RegisterRequest;
@@ -13,7 +16,7 @@ import edu.iastate.cs.theseguys.network.RegisterResponse;
 
 public class RegisterRequestHandler implements MessageHandler<RegisterRequest> {
     private static final Logger log = LoggerFactory.getLogger(RegisterRequestHandler.class);
-
+   
 	private AuthorityClientManager manager;
 	
 	public RegisterRequestHandler(AuthorityClientManager manager)
@@ -27,7 +30,7 @@ public class RegisterRequestHandler implements MessageHandler<RegisterRequest> {
     	
     	log.info("Received a register request:"+request.getUsername() + " " + request.getPassword());
     	
-    	if (manager.userExists(request.getUsername(), request.getPassword()))
+    	if (manager.getDatabaseManager().userExists(request.getUsername()))
     	{
     		log.info("User already exists");
     		session.write(new RegisterResponse(false, "Username already taken"));
@@ -35,7 +38,7 @@ public class RegisterRequestHandler implements MessageHandler<RegisterRequest> {
     	else
     	{
     		User newUser = new User(UUID.randomUUID(), request.getUsername(), request.getPassword());
-    		manager.insertUser(newUser);
+    		manager.getDatabaseManager().insertUser(newUser);
     		
     		session.write(new RegisterResponse(true, "Account creation successful"));
     	}

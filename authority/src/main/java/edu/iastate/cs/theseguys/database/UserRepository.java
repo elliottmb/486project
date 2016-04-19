@@ -1,6 +1,5 @@
 package edu.iastate.cs.theseguys.database;
 
-import java.util.List;
 import java.util.UUID;
 
 import org.springframework.data.jpa.repository.Query;
@@ -23,6 +22,9 @@ public interface UserRepository extends CrudRepository<User, UUID> {
 	@Query("select u.id from User u where u.username=?1")
 	UUID getId(String username);
 	
-	List<User> findByUsernameAndPassword(String username, String password);
+	User findByUsername(String username);
+	
+	@Query("select case when count(u) > 0 then true else false end from User u where u.username = ?1")
+	boolean existsByUsername(String username);
 	
 }
