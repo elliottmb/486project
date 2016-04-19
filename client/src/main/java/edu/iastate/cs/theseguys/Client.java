@@ -4,6 +4,7 @@ import edu.iastate.cs.theseguys.database.MessageRecord;
 import edu.iastate.cs.theseguys.database.MessageRepository;
 import edu.iastate.cs.theseguys.distributed.ClientManager;
 import edu.iastate.cs.theseguys.distributed.ServerManager;
+import edu.iastate.cs.theseguys.network.LoginRequest;
 import edu.iastate.cs.theseguys.network.MessageDatagram;
 import javafx.application.Platform;
 import javafx.embed.swing.JFXPanel;
@@ -219,6 +220,7 @@ public class Client implements CommandLineRunner {
 
         BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
 
+        System.out.println("Please login: (:l username password");
         System.out.print("> ");
         String s;
         Pair<MessageRecord, MessageRecord> idealParentRecords;
@@ -226,34 +228,47 @@ public class Client implements CommandLineRunner {
             if (":q".equalsIgnoreCase(s))
                 break;
 
-            if (s.toLowerCase().startsWith(":c")) {
+            if (s.toLowerCase().startsWith(":l ")) {
                 String[] arguments = s.split(" ");
                 if (arguments.length == 3) {
-                    InetSocketAddress inetSocketAddress = new InetSocketAddress(arguments[1], Integer.parseInt(arguments[2]));
-                    clientManager.connect(inetSocketAddress);
+                    InetSocketAddress serverAddress = (InetSocketAddress) serverManager.getService().getLocalAddress();
+                    authorityManager.write(new LoginRequest(arguments[1], arguments[2], serverAddress.getPort()));
                 } else {
                     System.out.println("Expecting two arguments, got " + (arguments.length - 1));
                 }
-                continue;
             } else {
-                if (":l".equalsIgnoreCase(s)) {
-                    System.out.println(clientManager.getService().getManagedSessions());
+                if (authorityManager.isLoggedIn()) {
+                    if (s.toLowerCase().startsWith(":c")) {
+                        String[] arguments = s.split(" ");
+                        if (arguments.length == 3) {
+                            InetSocketAddress inetSocketAddress = new InetSocketAddress(arguments[1], Integer.parseInt(arguments[2]));
+                            clientManager.connect(inetSocketAddress);
+                        } else {
+                            System.out.println("Expecting two arguments, got " + (arguments.length - 1));
+                        }
+                    } else {
+                        if (":l".equalsIgnoreCase(s)) {
+                            System.out.println(clientManager.getService().getManagedSessions());
+                        } else {
+
+                            idealParentRecords = databaseManager.getIdealParentRecords();
+
+                            System.out.println("We are only locally handling this, for now");
+                            MessageDatagram test = new MessageDatagram(
+                                    UUID.randomUUID(),
+                                    userOne,
+                                    idealParentRecords.getKey().getId(),
+                                    idealParentRecords.getValue().getId(),
+                                    s,
+                                    new Timestamp(System.currentTimeMillis()),
+                                    new byte[256]
+                            );
+
+                            databaseManager.getWaiting().push(new Pair<>(-1L, test));
+                        }
+                    }
                 } else {
-
-                    idealParentRecords = databaseManager.getIdealParentRecords();
-
-                    System.out.println("We are only locally handling this, for now");
-                    MessageDatagram test = new MessageDatagram(
-                            UUID.randomUUID(),
-                            userOne,
-                            idealParentRecords.getKey().getId(),
-                            idealParentRecords.getValue().getId(),
-                            s,
-                            new Timestamp(System.currentTimeMillis()),
-                            new byte[256]
-                    );
-
-                    databaseManager.getWaiting().push(new Pair<>(-1L, test));
+                    System.out.println("Please login: (:l username password");
                 }
             }
             System.out.print("> ");
