@@ -2,6 +2,7 @@ package edu.iastate.cs.theseguys.ui;
 
 import edu.iastate.cs.theseguys.Client;
 import edu.iastate.cs.theseguys.SpringFXMLLoader;
+import edu.iastate.cs.theseguys.network.LoginRequest;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Parent;
@@ -15,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 
 //TODO For chat use TextArea
 
@@ -35,7 +37,7 @@ public class LoginController {
 
     @FXML
     protected void button(ActionEvent event) throws IOException {
-        //TODO add signin checking here. If failed, show error in text error
+        
         if (event.getSource() instanceof Button) {
             Button pressed = (Button) event.getSource();
             Stage stage = (Stage) pressed.getScene().getWindow();
@@ -43,6 +45,9 @@ public class LoginController {
             if (pressed.getText().equals("Register")) {
                 root = springFXMLLoader.load("/fxml/register.fxml");
             } else {
+            	InetSocketAddress serverAddress = (InetSocketAddress) client.getServerManager().getService().getLocalAddress();
+                client.getAuthorityManager().write(new LoginRequest(username.getText(), password.getText(), serverAddress.getPort()));
+                //TODO add signin checking here. If failed, show error in text error
                 root = springFXMLLoader.load("/fxml/chat.fxml");
             }
             Scene scene = new Scene(root);
