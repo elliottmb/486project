@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import java.lang.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.layout.GridPane?>
+
+
+<GridPane alignment="CENTER" prefHeight="600.0" prefWidth="800.0" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/8" fx:controller="edu.iastate.cs.theseguys.ui.ConnectionController">
+   <columnConstraints>
+      <ColumnConstraints halignment="CENTER" />
+   </columnConstraints>
+   <rowConstraints>
+      <RowConstraints />
+      <RowConstraints />
+      <RowConstraints />
+   </rowConstraints>
+   <children>
+      <ProgressIndicator />
+      <Label text="Connecting to Authority" GridPane.rowIndex="1" />
+      <Button fx:id="retry" alignment="CENTER" disable="true" mnemonicParsing="false" onAction="#reconnect" opacity="0.0" text="Retry" GridPane.rowIndex="2" />
+   </children>
+</GridPane>
