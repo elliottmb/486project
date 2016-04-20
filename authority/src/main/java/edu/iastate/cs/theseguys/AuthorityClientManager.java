@@ -30,20 +30,26 @@ public class AuthorityClientManager extends AbstractIoAcceptorManager {
 
     private static final Logger log = LoggerFactory.getLogger(AuthorityClientManager.class);
     private static final int PORT = 9090;
-
-
+    @Autowired
+    private LoginRequestHandler loginRequestHandler;
+    @Autowired
+    private RegisterRequestHandler registerRequestHandler;
+    @Autowired
+    private PeerListRequestHandler peerListRequestHandler;
+    @Autowired
+    private UserListRequestHandler userListRequestHandler;
     //iosession to port.  iosession contains client's ip, but we need to also store the port that the client listens for other clients on
     private ConcurrentMap<IoSession, Integer> connectedClients;
     private ConcurrentMap<UUID, IoSession> activeSessions;
-
-
     @Autowired
     private DatabaseManager databaseManager;
+    @Autowired
+    private VerificationRequestHandler verificationRequestHandler;
 
     public AuthorityClientManager() {
         super(new NioSocketAcceptor(), new CustomDemuxingIoHandler());
-        connectedClients = new ConcurrentHashMap<IoSession, Integer>();
-        activeSessions = new ConcurrentHashMap<UUID, IoSession>();
+        connectedClients = new ConcurrentHashMap<>();
+        activeSessions = new ConcurrentHashMap<>();
 
         ((CustomDemuxingIoHandler) getIoHandler()).setManager(this);
     }
@@ -54,11 +60,11 @@ public class AuthorityClientManager extends AbstractIoAcceptorManager {
 
     @PostConstruct
     private void prepareHandlers() {
-        getIoHandler().addReceivedMessageHandler(LoginRequest.class, new LoginRequestHandler(this));
-        getIoHandler().addReceivedMessageHandler(RegisterRequest.class, new RegisterRequestHandler(this));
-        getIoHandler().addReceivedMessageHandler(PeerListRequest.class, new PeerListRequestHandler(this));
-        getIoHandler().addReceivedMessageHandler(VerificationRequest.class, new VerificationRequestHandler(this));
-        getIoHandler().addReceivedMessageHandler(UserListRequest.class, new UserListRequestHandler(this));
+        getIoHandler().addReceivedMessageHandler(LoginRequest.class, loginRequestHandler);
+        getIoHandler().addReceivedMessageHandler(RegisterRequest.class, registerRequestHandler);
+        getIoHandler().addReceivedMessageHandler(PeerListRequest.class, peerListRequestHandler);
+        getIoHandler().addReceivedMessageHandler(VerificationRequest.class, verificationRequestHandler);
+        getIoHandler().addReceivedMessageHandler(UserListRequest.class, userListRequestHandler);
 
         getIoHandler().addSentMessageHandler(RegisterResponse.class, MessageHandler.NOOP);
         getIoHandler().addSentMessageHandler(PeerListResponse.class, MessageHandler.NOOP);
@@ -75,7 +81,6 @@ public class AuthorityClientManager extends AbstractIoAcceptorManager {
     public void addNewClient(IoSession session, UUID userID, Integer port) {
         connectedClients.put(session, port);
         activeSessions.put(userID, session);
-
     }
 
     public void removeConnectedClient(IoSession session) {
