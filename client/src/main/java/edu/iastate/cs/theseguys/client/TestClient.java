@@ -60,7 +60,7 @@ public class TestClient implements CommandLineRunner {
         int attempts = 0;
         while (attempts < 10) {
             try {
-                ConnectFuture future = connector.connect(new InetSocketAddress("localhost", 9090));
+                ConnectFuture future = connector.connect(new InetSocketAddress("localhost", 5050));
                 future.awaitUninterruptibly();
                 session = future.getSession();
                 break;
