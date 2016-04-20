@@ -13,6 +13,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import javafx.util.Pair;
+import org.apache.mina.core.RuntimeIoException;
 import org.apache.mina.core.future.ConnectFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -79,43 +80,67 @@ public class Client implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
         final CountDownLatch latch = new CountDownLatch(1);
-        SwingUtilities.invokeLater(() -> {
-            JFXPanel jfxPanel = new JFXPanel(); // initializes JavaFX environment
-            jfxPanel.setSize(800, 600);
-            jfxPanel.setVisible(true);
-            latch.countDown();
-        });
+        SwingUtilities.invokeLater(
+                () -> {
+                    JFXPanel jfxPanel = new JFXPanel(); // initializes JavaFX environment
+                    jfxPanel.setSize(800, 600);
+                    jfxPanel.setVisible(true);
+                    latch.countDown();
+                }
+        );
         latch.await();
 
-        Platform.runLater(() -> {
-            Stage stage = new Stage();
-            stage.setTitle("TEST");
-            stage.setOnCloseRequest(
-                    event -> {
-                        dispose();
-                        Platform.exit();
+        Platform.runLater(
+                () -> {
+                    Stage stage = new Stage();
+                    stage.setTitle("TEST");
+                    stage.setOnCloseRequest(
+                            event -> {
+                                dispose();
+                                Platform.exit();
+                                System.exit(0);
+                            }
+                    );
+
+                    Parent root = null;
+                    try {
+                        root = springFXMLLoader.load("/fxml/login.fxml");
+                        stage.setScene(new Scene(root, 800, 600));
+                    } catch (IOException e) {
+                        e.printStackTrace();
                         System.exit(0);
                     }
-            );
+                    stage.show();
+                }
+        );
 
-            Parent root = null;
+
+        ConnectFuture authorityFuture = null;
+        for (int i = 0; i < 5; i++) {
             try {
-                root = springFXMLLoader.load("/fxml/login.fxml");
-                stage.setScene(new Scene(root, 800, 600));
-            } catch (IOException e) {
+                authorityFuture = authorityManager.connect(new InetSocketAddress(9090));
+                authorityFuture.awaitUninterruptibly();
+                if (authorityFuture.getSession().isConnected()) {
+                    break;
+                }
+            } catch (RuntimeIoException e) {
+                log.warn("Failed to connect to authority, waiting 3 seconds.");
                 e.printStackTrace();
-                System.exit(0);
+                Thread.sleep(3000);
             }
-            stage.show();
-
-            //Application.launch(ClientUI.class, args);
-        });
-
-        ConnectFuture authorityFuture = authorityManager.connect(new InetSocketAddress(9090));
-
-        authorityFuture.awaitUninterruptibly();
-
+        }
         // TODO: Actually check for connectivity and handle retrying.
+        if (authorityFuture.isConnected()) {
+            log.info("Successfully connect to authority.");
+            // TODO: Transition to login scene
+        } else {
+            log.warn("Failed to connect to authority, max number of attempts. Exiting.");
+            dispose();
+            System.exit(0);
+        }
+
+
+
         /*
         EventQueue.invokeLater(
                 () -> {

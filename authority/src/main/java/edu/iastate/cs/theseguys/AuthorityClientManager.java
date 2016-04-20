@@ -1,18 +1,9 @@
 package edu.iastate.cs.theseguys;
 
 
-
-
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map.Entry;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-
-import org.apache.mina.core.service.IoAcceptor;
+import edu.iastate.cs.theseguys.database.DatabaseManager;
+import edu.iastate.cs.theseguys.model.Peer;
+import edu.iastate.cs.theseguys.network.*;
 import org.apache.mina.core.session.IoSession;
 import org.apache.mina.filter.codec.ProtocolCodecFilter;
 import org.apache.mina.filter.codec.serialization.ObjectSerializationCodecFactory;
@@ -24,114 +15,93 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import edu.iastate.cs.theseguys.database.DatabaseManager;
-import edu.iastate.cs.theseguys.model.Peer;
-import edu.iastate.cs.theseguys.network.LoginRequest;
-import edu.iastate.cs.theseguys.network.LoginResponse;
-import edu.iastate.cs.theseguys.network.PeerListRequest;
-import edu.iastate.cs.theseguys.network.PeerListResponse;
-import edu.iastate.cs.theseguys.network.RegisterRequest;
-import edu.iastate.cs.theseguys.network.RegisterResponse;
-import edu.iastate.cs.theseguys.network.UserListRequest;
-import edu.iastate.cs.theseguys.network.UserListResponse;
-import edu.iastate.cs.theseguys.network.VerificationRequest;
-import edu.iastate.cs.theseguys.network.VerificationResponse;
+import javax.annotation.PostConstruct;
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.util.List;
+import java.util.Map.Entry;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.stream.Collectors;
 
 @Component
-public class AuthorityClientManager {
-	
-	private static final Logger log = LoggerFactory.getLogger(AuthorityClientManager.class);
-	private static final int PORT = 9090;
-	
-	private IoAcceptor acceptor;
-	private CustomDemuxingIoHandler ioHandler;
-	//iosession to port.  iosession contains client's ip, but we need to also store the port that the client listens for other clients on
-	private ConcurrentMap<IoSession, Integer> connectedClients;  
-	private ConcurrentMap<UUID, IoSession> activeSessions;
-	
-	
-	@Autowired
+public class AuthorityClientManager extends AbstractIoAcceptorManager {
+
+    private static final Logger log = LoggerFactory.getLogger(AuthorityClientManager.class);
+    private static final int PORT = 9090;
+
+
+    //iosession to port.  iosession contains client's ip, but we need to also store the port that the client listens for other clients on
+    private ConcurrentMap<IoSession, Integer> connectedClients;
+    private ConcurrentMap<UUID, IoSession> activeSessions;
+
+
+    @Autowired
     private DatabaseManager databaseManager;
-	
-	public AuthorityClientManager()
-	{
-		connectedClients = new ConcurrentHashMap<IoSession, Integer>();
-		activeSessions = new ConcurrentHashMap<UUID, IoSession>();
-		
-		acceptor = new NioSocketAcceptor();
-        ioHandler = new CustomDemuxingIoHandler(this);
-        
-        ioHandler.addReceivedMessageHandler(LoginRequest.class, new LoginRequestHandler(this));
-        ioHandler.addReceivedMessageHandler(RegisterRequest.class, new RegisterRequestHandler(this));
-        ioHandler.addReceivedMessageHandler(PeerListRequest.class, new PeerListRequestHandler(this));
-        ioHandler.addReceivedMessageHandler(VerificationRequest.class, new VerificationRequestHandler(this));
-        ioHandler.addReceivedMessageHandler(UserListRequest.class, new UserListRequestHandler(this));
-        
-        ioHandler.addSentMessageHandler(RegisterResponse.class, MessageHandler.NOOP);
-        ioHandler.addSentMessageHandler(PeerListResponse.class, MessageHandler.NOOP);
-        ioHandler.addSentMessageHandler(LoginResponse.class, MessageHandler.NOOP);
-        ioHandler.addSentMessageHandler(VerificationResponse.class, MessageHandler.NOOP);
-        ioHandler.addSentMessageHandler(UserListResponse.class, MessageHandler.NOOP);
-        
-        
-        acceptor.getFilterChain().addLast("logger", new LoggingFilter());
-        acceptor.getFilterChain().addLast("codec", new ProtocolCodecFilter(new ObjectSerializationCodecFactory()));
-        acceptor.setHandler(ioHandler);
-        
-        try{
-        	acceptor.bind(new InetSocketAddress(PORT));
-        }
-        catch(IOException ioe)
-        {
-        	log.info("Failed to bind to port "+PORT);
-        	ioe.printStackTrace();
-        	
-        }
-	}
-	
 
-	public void addNewClient(IoSession session, UUID userID, Integer port)
-	{
-		connectedClients.put(session, port);
-		activeSessions.put(userID, session);
-		
-	}
-	
-	public void removeConnectedClient(IoSession session)
-	{
-		connectedClients.remove(session);
-	}
+    public AuthorityClientManager() {
+        super(new NioSocketAcceptor(), new CustomDemuxingIoHandler());
+        connectedClients = new ConcurrentHashMap<IoSession, Integer>();
+        activeSessions = new ConcurrentHashMap<UUID, IoSession>();
 
-	
-	
-	
-	
-	
-	public List<Peer> getAllClients()
-	{
-		List<Peer> clients= new ArrayList<Peer>(connectedClients.size());
-		
-		for (Entry<IoSession, Integer> e : connectedClients.entrySet())
-		{
-			clients.add(new Peer(e.getKey().getRemoteAddress().toString(), e.getValue()));
-		}
-		
-		return clients;
-	}
-	
-	public DatabaseManager getDatabaseManager()
-	{
-		return databaseManager;
-	}
-	
-	public String getConnectedClients()
-	{
-		String result = "";
-		for (Entry<IoSession, Integer> e : connectedClients.entrySet())
-		{
-			result+=e.getKey() + " " + e.getValue() + "\n";
-		}
-		return result;
-	}
+        ((CustomDemuxingIoHandler) getIoHandler()).setManager(this);
+    }
+
+    public void run() throws IOException {
+        bind(new InetSocketAddress(PORT));
+    }
+
+    @PostConstruct
+    private void prepareHandlers() {
+        getIoHandler().addReceivedMessageHandler(LoginRequest.class, new LoginRequestHandler(this));
+        getIoHandler().addReceivedMessageHandler(RegisterRequest.class, new RegisterRequestHandler(this));
+        getIoHandler().addReceivedMessageHandler(PeerListRequest.class, new PeerListRequestHandler(this));
+        getIoHandler().addReceivedMessageHandler(VerificationRequest.class, new VerificationRequestHandler(this));
+        getIoHandler().addReceivedMessageHandler(UserListRequest.class, new UserListRequestHandler(this));
+
+        getIoHandler().addSentMessageHandler(RegisterResponse.class, MessageHandler.NOOP);
+        getIoHandler().addSentMessageHandler(PeerListResponse.class, MessageHandler.NOOP);
+        getIoHandler().addSentMessageHandler(LoginResponse.class, MessageHandler.NOOP);
+        getIoHandler().addSentMessageHandler(VerificationResponse.class, MessageHandler.NOOP);
+        getIoHandler().addSentMessageHandler(UserListResponse.class, MessageHandler.NOOP);
+
+
+        getService().getFilterChain().addLast("logger", new LoggingFilter());
+        getService().getFilterChain().addLast("codec", new ProtocolCodecFilter(new ObjectSerializationCodecFactory()));
+    }
+
+
+    public void addNewClient(IoSession session, UUID userID, Integer port) {
+        connectedClients.put(session, port);
+        activeSessions.put(userID, session);
+
+    }
+
+    public void removeConnectedClient(IoSession session) {
+        connectedClients.remove(session);
+    }
+
+
+    public List<Peer> getAllClients() {
+        return connectedClients.entrySet()
+                .stream()
+                .map(
+                        e -> new Peer(e.getKey().getRemoteAddress().toString(), e.getValue())
+                )
+                .collect(Collectors.toList());
+    }
+
+    public DatabaseManager getDatabaseManager() {
+        return databaseManager;
+    }
+
+    public String getConnectedClients() {
+        String result = "";
+        for (Entry<IoSession, Integer> e : connectedClients.entrySet()) {
+            result += e.getKey() + " " + e.getValue() + "\n";
+        }
+        return result;
+    }
 
 }

@@ -6,30 +6,27 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class CustomDemuxingIoHandler extends DemuxingIoHandler {
+    private static final Logger log = LoggerFactory.getLogger(CustomDemuxingIoHandler.class);
+    private AuthorityClientManager manager;
 
-	private AuthorityClientManager manager;
-	private static final Logger log = LoggerFactory.getLogger(CustomDemuxingIoHandler.class);
+    public CustomDemuxingIoHandler() {
+        super();
+    }
 
-	
-	public CustomDemuxingIoHandler(AuthorityClientManager manager)
-	{
-		super();
-		this.manager = manager;
-	}
-	
-	@Override
-	public void sessionClosed(IoSession session)
-	{
-		log.info("SESSION CLOSED");
-		manager.removeConnectedClient(session);
-		log.info("CONNECTED CLIENTS: "+manager.getConnectedClients());
-	}
-	
-	@Override
-	public void sessionCreated(IoSession session)
-	{
-		
-	}
-	
-	
+    @Override
+    public void sessionClosed(IoSession session) {
+        log.info("SESSION CLOSED");
+        manager.removeConnectedClient(session);
+        log.info("CONNECTED CLIENTS: " + manager.getConnectedClients());
+    }
+
+    @Override
+    public void sessionCreated(IoSession session) {
+
+    }
+
+
+    public void setManager(AuthorityClientManager manager) {
+        this.manager = manager;
+    }
 }

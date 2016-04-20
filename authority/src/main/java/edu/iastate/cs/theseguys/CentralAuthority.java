@@ -49,6 +49,8 @@ public class CentralAuthority implements CommandLineRunner {
         } else {
             log.info("Successfully loaded key pair from file");
         }
+
+        clientManager.run();
     }
 
 }
