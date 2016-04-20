@@ -6,8 +6,6 @@ import org.apache.mina.core.session.IoSession;
 import org.apache.mina.handler.demux.MessageHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 
 import edu.iastate.cs.theseguys.database.User;

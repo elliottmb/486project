@@ -1,8 +1,10 @@
 package edu.iastate.cs.theseguys.model;
 
-public class Peer {
+import java.io.Serializable;
 
-    private String ip;
+public class Peer implements Serializable{
+	private static final long serialVersionUID = 8990653320527676216L;
+	private String ip;
     private int port;
 
     public Peer(String ip, int port) {

@@ -1,5 +1,7 @@
 package edu.iastate.cs.theseguys.database;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import org.slf4j.Logger;
@@ -7,6 +9,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
+
+import edu.iastate.cs.theseguys.model.IDUsernamePair;
 
 
 @Component
@@ -53,6 +57,12 @@ public class DatabaseManager {
     	return result;
     }
     
+    /**
+     * Returns the user with the specified username and password if it exists, or null otherwise
+     * @param username
+     * @param password
+     * @return
+     */
     public User authenticateUser(String username, String password)
     {
     	User u = repository.findByUsername(username);
@@ -66,4 +76,17 @@ public class DatabaseManager {
     	}
     	return u;
     }
+    
+    public List<IDUsernamePair> getAllUsers()
+    {
+    	Iterable<User> users = repository.findAll();
+    	List<IDUsernamePair> result = new ArrayList<IDUsernamePair>();
+    	for(User u : users)
+    	{
+    		result.add(new IDUsernamePair(u.getId(), u.getUsername()));
+    	}
+    	
+    	return result;
+    }
+    
 }

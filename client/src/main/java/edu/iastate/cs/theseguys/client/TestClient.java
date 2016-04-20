@@ -48,9 +48,11 @@ public class TestClient implements CommandLineRunner {
 
         demuxIoHandler.addSentMessageHandler(RegisterRequest.class, new LoggingMessageHandler());
         demuxIoHandler.addSentMessageHandler(LoginRequest.class, new LoggingMessageHandler());
+        demuxIoHandler.addSentMessageHandler(UserListRequest.class, new LoggingMessageHandler());
 
         demuxIoHandler.addReceivedMessageHandler(RegisterResponse.class, new LoggingMessageHandler());
         demuxIoHandler.addReceivedMessageHandler(LoginResponse.class, new LoggingMessageHandler());
+        demuxIoHandler.addReceivedMessageHandler(UserListResponse.class, new LoggingMessageHandler());
 
         connector.getFilterChain().addLast("logger", new LoggingFilter());
         connector.getFilterChain().addLast("codec", new ProtocolCodecFilter(new ObjectSerializationCodecFactory()));
@@ -60,7 +62,7 @@ public class TestClient implements CommandLineRunner {
         int attempts = 0;
         while (attempts < 10) {
             try {
-                ConnectFuture future = connector.connect(new InetSocketAddress("localhost", 5050));
+                ConnectFuture future = connector.connect(new InetSocketAddress("localhost", 9090));
                 future.awaitUninterruptibly();
                 session = future.getSession();
                 break;
@@ -77,10 +79,12 @@ public class TestClient implements CommandLineRunner {
        
 
         if (session != null) {
-        	//session.write(new RegisterRequest("jake", "caithamer"));
-            session.write(new LoginRequest("jake", "caithamer", 1234));
+        	session.write(new RegisterRequest("jake", "caithamer"));
+        	session.write(new RegisterRequest("user1", "password"));
+        	session.write(new RegisterRequest("user2", "password"));
+            //session.write(new LoginRequest("jake", "caithamer", 1234));
 
-
+        	session.write(new UserListRequest());
 
             // wait until the summation is done
             session.getCloseFuture().awaitUninterruptibly();

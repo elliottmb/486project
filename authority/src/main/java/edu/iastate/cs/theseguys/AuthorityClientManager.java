@@ -32,6 +32,8 @@ import edu.iastate.cs.theseguys.network.PeerListRequest;
 import edu.iastate.cs.theseguys.network.PeerListResponse;
 import edu.iastate.cs.theseguys.network.RegisterRequest;
 import edu.iastate.cs.theseguys.network.RegisterResponse;
+import edu.iastate.cs.theseguys.network.UserListRequest;
+import edu.iastate.cs.theseguys.network.UserListResponse;
 import edu.iastate.cs.theseguys.network.VerificationRequest;
 import edu.iastate.cs.theseguys.network.VerificationResponse;
 
@@ -63,11 +65,13 @@ public class AuthorityClientManager {
         ioHandler.addReceivedMessageHandler(RegisterRequest.class, new RegisterRequestHandler(this));
         ioHandler.addReceivedMessageHandler(PeerListRequest.class, new PeerListRequestHandler(this));
         ioHandler.addReceivedMessageHandler(VerificationRequest.class, new VerificationRequestHandler(this));
+        ioHandler.addReceivedMessageHandler(UserListRequest.class, new UserListRequestHandler(this));
         
         ioHandler.addSentMessageHandler(RegisterResponse.class, MessageHandler.NOOP);
         ioHandler.addSentMessageHandler(PeerListResponse.class, MessageHandler.NOOP);
         ioHandler.addSentMessageHandler(LoginResponse.class, MessageHandler.NOOP);
         ioHandler.addSentMessageHandler(VerificationResponse.class, MessageHandler.NOOP);
+        ioHandler.addSentMessageHandler(UserListResponse.class, MessageHandler.NOOP);
         
         
         acceptor.getFilterChain().addLast("logger", new LoggingFilter());
