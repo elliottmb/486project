@@ -22,6 +22,10 @@ public class AuthorityManager extends AbstractIoConnectorManager {
 
     private UUID userId;
     private PublicKey publicKey;
+    @Autowired
+    private LoginResponseHandler loginResponseHandler;
+    @Autowired
+    private VerificationResponseHandler verificationResponseHandler;
 
     public AuthorityManager() {
         super(new NioSocketConnector(), new DemuxingIoHandler());
@@ -31,15 +35,15 @@ public class AuthorityManager extends AbstractIoConnectorManager {
         return userId != null;
     }
 
-    @Autowired
-    LoginResponseHandler loginResponseHandler;
-
     @PostConstruct
     private void prepareHandlers() {
         getIoHandler().addSentMessageHandler(LoginRequest.class, MessageHandler.NOOP);
         getIoHandler().addReceivedMessageHandler(LoginResponse.class, loginResponseHandler); // TODO: Actually handle
         getIoHandler().addSentMessageHandler(RegisterRequest.class, MessageHandler.NOOP);
         getIoHandler().addReceivedMessageHandler(RegisterResponse.class, MessageHandler.NOOP); // TODO: Actually handle
+        getIoHandler().addSentMessageHandler(VerificationRequest.class, MessageHandler.NOOP);
+        getIoHandler().addReceivedMessageHandler(VerificationResponse.class, verificationResponseHandler);
+
         getService().getFilterChain().addLast("logger", new LoggingFilter());
         getService().getFilterChain().addLast("codec", new ProtocolCodecFilter(new ObjectSerializationCodecFactory()));
     }

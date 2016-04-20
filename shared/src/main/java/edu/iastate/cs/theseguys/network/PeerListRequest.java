@@ -7,5 +7,10 @@ public class PeerListRequest extends AbstractMessage {
 
     }
 
+    @Override
+    public String toString() {
+        return "PeerListRequest{}";
+    }
+
 
 }

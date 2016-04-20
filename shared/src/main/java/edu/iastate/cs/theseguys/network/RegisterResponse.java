@@ -11,7 +11,7 @@ public class RegisterResponse extends AbstractMessage {
         this.message = message;
     }
 
-    public boolean getSuccess() {
+    public boolean isSuccess() {
         return success;
     }
 

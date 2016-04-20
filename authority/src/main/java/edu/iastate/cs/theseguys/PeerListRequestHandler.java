@@ -5,18 +5,15 @@ import edu.iastate.cs.theseguys.network.PeerListRequest;
 import edu.iastate.cs.theseguys.network.PeerListResponse;
 import org.apache.mina.core.session.IoSession;
 import org.apache.mina.handler.demux.MessageHandler;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 
-
+@Component
 public class PeerListRequestHandler implements MessageHandler<PeerListRequest> {
-
+    @Autowired
     private AuthorityClientManager manager;
-
-    public PeerListRequestHandler(AuthorityClientManager manager) {
-        super();
-        this.manager = manager;
-    }
 
     @Override
     public void handleMessage(IoSession session, PeerListRequest request) throws Exception {

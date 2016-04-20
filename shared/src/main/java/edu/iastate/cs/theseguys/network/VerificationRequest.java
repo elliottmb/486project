@@ -6,7 +6,7 @@ package edu.iastate.cs.theseguys.network;
  */
 public class VerificationRequest extends AbstractMessage {
     private static final long serialVersionUID = -7719439373013433851L;
-    private MessageDatagram message;
+    private final MessageDatagram message;
 
     public VerificationRequest(MessageDatagram message) {
         this.message = message;
@@ -14,5 +14,12 @@ public class VerificationRequest extends AbstractMessage {
 
     public MessageDatagram getMessage() {
         return message;
+    }
+
+    @Override
+    public String toString() {
+        return "VerificationRequest{" +
+                "message=" + message +
+                '}';
     }
 }

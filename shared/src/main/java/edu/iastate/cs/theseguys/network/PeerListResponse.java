@@ -16,4 +16,10 @@ public class PeerListResponse extends AbstractMessage {
         return this.clients;
     }
 
+    @Override
+    public String toString() {
+        return "PeerListResponse{" +
+                "clients=" + clients +
+                '}';
+    }
 }

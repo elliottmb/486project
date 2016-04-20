@@ -10,19 +10,21 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-public class LatestMessageResponseHandler implements MessageHandler<LatestMessageResponse> {
-    private static final Logger log = LoggerFactory.getLogger(LatestMessageResponseHandler.class);
+public class VerificationResponseHandler implements MessageHandler<VerificationResponse> {
+    private static final Logger log = LoggerFactory.getLogger(VerificationResponseHandler.class);
     @Autowired
     private DatabaseManager databaseManager;
 
 
     @Override
-    public void handleMessage(IoSession session, LatestMessageResponse message) throws Exception {
+    public void handleMessage(IoSession session, VerificationResponse message) throws Exception {
         log.info("Received " + message.toString());
 
         MessageDatagram m = message.getMessage();
 
-        databaseManager.getWaiting().push(new Pair<>(session.getId(), m));
+        if (message.isValid()) {
+            databaseManager.getWaiting().push(new Pair<>(-1L, m));
+        }
     }
 }
 

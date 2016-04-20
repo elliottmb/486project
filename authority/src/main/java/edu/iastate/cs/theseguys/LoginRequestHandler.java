@@ -8,19 +8,17 @@ import org.apache.mina.core.session.IoSession;
 import org.apache.mina.handler.demux.MessageHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.UUID;
 
+@Component
 public class LoginRequestHandler implements MessageHandler<LoginRequest> {
 
     private static final Logger log = LoggerFactory.getLogger(LoginRequestHandler.class);
+    @Autowired
     private AuthorityClientManager manager;
-
-
-    public LoginRequestHandler(AuthorityClientManager manager) {
-        super();
-        this.manager = manager;
-    }
 
     @Override
     public void handleMessage(IoSession session, LoginRequest request) throws Exception {

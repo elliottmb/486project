@@ -7,6 +7,7 @@ import edu.iastate.cs.theseguys.distributed.ServerManager;
 import edu.iastate.cs.theseguys.network.LoginRequest;
 import edu.iastate.cs.theseguys.network.MessageDatagram;
 import edu.iastate.cs.theseguys.network.RegisterRequest;
+import edu.iastate.cs.theseguys.network.VerificationRequest;
 import javafx.application.Platform;
 import javafx.embed.swing.JFXPanel;
 import javafx.scene.Parent;
@@ -305,6 +306,8 @@ public class Client implements CommandLineRunner {
                                         new Timestamp(System.currentTimeMillis()),
                                         new byte[256]
                                 );
+
+                                authorityManager.write(new VerificationRequest(test));
 
                                 databaseManager.getWaiting().push(new Pair<>(-1L, test));
                             }
