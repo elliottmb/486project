@@ -1,19 +1,21 @@
 package edu.iastate.cs.theseguys.network;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.UUID;
 
-import edu.iastate.cs.theseguys.model.IDUsernamePair;
 
 public class UserListResponse extends AbstractMessage {
 	private static final long serialVersionUID = -8033950939300333602L;
-	private List<IDUsernamePair> users;
+	private Map<UUID, String> users;
 	
-	public UserListResponse(List<IDUsernamePair> users)
+	public UserListResponse(Map<UUID, String> users)
 	{
 		this.users = users;
 	}
 	
-	public List<IDUsernamePair> getUsers()
+	public Map<UUID, String> getUsers()
 	{
 		return users;
 	}
@@ -22,9 +24,9 @@ public class UserListResponse extends AbstractMessage {
 	public String toString()
 	{
 		String result = "";
-		for(IDUsernamePair u : users)
+		for(Entry<UUID, String> u : users.entrySet())
 		{
-			result += u.getId() + " " + u.getUsername() + "\n";
+			result += u.getKey() + " " + u.getValue() + "\n";
 		}
 		return result;
 	}
