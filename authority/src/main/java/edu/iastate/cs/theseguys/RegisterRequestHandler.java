@@ -21,18 +21,29 @@ public class RegisterRequestHandler implements MessageHandler<RegisterRequest> {
 
     @Override
     public void handleMessage(IoSession session, RegisterRequest request) throws Exception {
-
         log.info("Received a register request:" + request.getUsername() + " " + request.getPassword());
 
+        if (request.getUsername() == null || request.getUsername().length() < 3) {
+            log.info("Username too short");
+            session.write(new RegisterResponse(false, "Username must be at least 3 characters long."));
+            return;
+        }
+        if (request.getPassword() == null || request.getPassword().length() < 6) {
+            log.info("Password too short");
+            session.write(new RegisterResponse(false, "Password must be at least 6 characters long."));
+            return;
+        }
         if (manager.getDatabaseManager().userExists(request.getUsername())) {
             log.info("User already exists");
             session.write(new RegisterResponse(false, "Username already taken"));
-        } else {
-            User newUser = new User(UUID.randomUUID(), request.getUsername(), request.getPassword());
-            manager.getDatabaseManager().insertUser(newUser);
-
-            session.write(new RegisterResponse(true, "Account creation successful"));
+            return;
         }
+
+        User newUser = new User(UUID.randomUUID(), request.getUsername(), request.getPassword());
+        manager.getDatabaseManager().insertUser(newUser);
+
+        session.write(new RegisterResponse(true, "Account creation successful"));
+
 
         log.info("Users currently in database: ");
         for (User user : manager.getDatabaseManager().getRepository().findAll()) {
