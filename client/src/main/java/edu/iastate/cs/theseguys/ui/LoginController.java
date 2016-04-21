@@ -40,16 +40,10 @@ public class LoginController implements ApplicationListener<UserSessionEvent> {
 
     @FXML
     protected void button(ActionEvent event) throws IOException {
-
         if (event.getSource() instanceof Button) {
             Button pressed = (Button) event.getSource();
-            Stage stage = (Stage) pressed.getScene().getWindow();
-            Parent root = null;
             if (pressed.getText().equals("Register")) {
-                root = springFXMLLoader.load("/fxml/register.fxml");
-                Scene scene = new Scene(root);
-                stage.setScene(scene);
-                stage.show();
+                changeScreens("/fxml/register.fxml");
             } else {
                 InetSocketAddress serverAddress = (InetSocketAddress) client.getServerManager().getService().getLocalAddress();
                 client.getAuthorityManager().write(new LoginRequest(username.getText(), password.getText(), serverAddress.getPort()));
@@ -58,20 +52,24 @@ public class LoginController implements ApplicationListener<UserSessionEvent> {
 
         }
     }
+    
+    private void changeScreens(String screen) throws IOException {
+        Stage stage = (Stage) username.getScene().getWindow();
+        Parent root = springFXMLLoader.load(screen);
+        Scene scene = new Scene(root);
+        stage.setScene(scene);
+        stage.show();
+    }
 
     @Override
     public void onApplicationEvent(UserSessionEvent event) {
         if (event instanceof LoginEvent) {
             LoginEvent loginEvent = (LoginEvent) event;
             if (loginEvent.isSuccessful()) {
-                final Stage stage = (Stage) username.getScene().getWindow();
                 Platform.runLater(
                         () -> {
                             try {
-                                Parent root = springFXMLLoader.load("/fxml/chat.fxml");
-                                Scene scene = new Scene(root);
-                                stage.setScene(scene);
-                                stage.show();
+                                changeScreens("/fxml/chat.fxml");
                             } catch (IOException e) {
                                 e.printStackTrace();
                             }
