@@ -31,7 +31,7 @@ public class AuthorityManager extends AbstractIoConnectorManager {
         super(new NioSocketConnector(), new DemuxingIoHandler());
     }
 
-    public boolean isLoggedIn() {
+    public synchronized boolean isLoggedIn() {
         return userId != null;
     }
 
@@ -48,19 +48,19 @@ public class AuthorityManager extends AbstractIoConnectorManager {
         getService().getFilterChain().addLast("codec", new ProtocolCodecFilter(new ObjectSerializationCodecFactory()));
     }
 
-    public UUID getUserId() {
+    public synchronized UUID getUserId() {
         return userId;
     }
 
-    public void setUserId(UUID userId) {
+    public synchronized void setUserId(UUID userId) {
         this.userId = userId;
     }
 
-    public PublicKey getPublicKey() {
+    public synchronized PublicKey getPublicKey() {
         return publicKey;
     }
 
-    public void setPublicKey(PublicKey publicKey) {
+    public synchronized void setPublicKey(PublicKey publicKey) {
         this.publicKey = publicKey;
     }
 }

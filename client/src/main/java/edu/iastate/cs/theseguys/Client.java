@@ -4,6 +4,7 @@ import edu.iastate.cs.theseguys.database.MessageRecord;
 import edu.iastate.cs.theseguys.database.MessageRepository;
 import edu.iastate.cs.theseguys.distributed.ClientManager;
 import edu.iastate.cs.theseguys.distributed.ServerManager;
+import edu.iastate.cs.theseguys.eventbus.AuthorityConnectedEvent;
 import edu.iastate.cs.theseguys.network.LoginRequest;
 import edu.iastate.cs.theseguys.network.MessageDatagram;
 import edu.iastate.cs.theseguys.network.RegisterRequest;
@@ -22,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
@@ -49,7 +51,8 @@ import java.util.concurrent.CountDownLatch;
 @EnableAutoConfiguration
 public class Client implements CommandLineRunner {
     private static final Logger log = LoggerFactory.getLogger(Client.class);
-
+    @Autowired
+    ApplicationEventPublisher applicationEventPublisher;
     @Autowired
     private AuthorityManager authorityManager;
     @Autowired
@@ -60,7 +63,6 @@ public class Client implements CommandLineRunner {
     private DatabaseManager databaseManager;
     @Autowired
     private SpringFXMLLoader springFXMLLoader;
-
 
     public static void main(String[] args) {
         log.info("I touch myself");
@@ -130,17 +132,15 @@ public class Client implements CommandLineRunner {
                 Thread.sleep(3000);
             }
         }
-        // TODO: Actually check for connectivity and handle retrying.
-        if (authorityFuture.isConnected()) {
+        if (authorityFuture != null && authorityFuture.isConnected()) {
             log.info("Successfully connect to authority.");
-            // TODO: Transition to login scene
+            // TODO: Handle this event in the ui controllers to transition to login scene
+            applicationEventPublisher.publishEvent(new AuthorityConnectedEvent(this));
         } else {
             log.warn("Failed to connect to authority, max number of attempts. Exiting.");
             dispose();
             System.exit(0);
         }
-
-
 
         /*
         EventQueue.invokeLater(
