@@ -52,7 +52,7 @@ public class LoginController implements ApplicationListener<UserSessionEvent> {
 
         }
     }
-    
+
     private void changeScreens(String screen) throws IOException {
         Stage stage = (Stage) username.getScene().getWindow();
         Parent root = springFXMLLoader.load(screen);
@@ -64,20 +64,22 @@ public class LoginController implements ApplicationListener<UserSessionEvent> {
     @Override
     public void onApplicationEvent(UserSessionEvent event) {
         if (event instanceof LoginEvent) {
-            LoginEvent loginEvent = (LoginEvent) event;
-            if (loginEvent.isSuccessful()) {
-                Platform.runLater(
-                        () -> {
+            final LoginEvent loginEvent = (LoginEvent) event;
+            Platform.runLater(
+                    () -> {
+                        if (loginEvent.isSuccessful()) {
+
                             try {
                                 changeScreens("/fxml/chat.fxml");
                             } catch (IOException e) {
                                 e.printStackTrace();
                             }
+
+                        } else {
+                            // TODO: Undo the disabling and such done above, and maybe indicate failure
                         }
-                );
-            } else {
-                // TODO: Undo the disabling and such done above, and maybe indicate failure
-            }
+                    }
+            );
         }
     }
 }

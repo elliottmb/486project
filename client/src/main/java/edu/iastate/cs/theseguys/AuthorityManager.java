@@ -26,6 +26,8 @@ public class AuthorityManager extends AbstractIoConnectorManager {
     private LoginResponseHandler loginResponseHandler;
     @Autowired
     private VerificationResponseHandler verificationResponseHandler;
+    @Autowired
+    private RegisterResponseHandler registerResponseHandler;
 
     public AuthorityManager() {
         super(new NioSocketConnector(), new DemuxingIoHandler());
@@ -38,9 +40,9 @@ public class AuthorityManager extends AbstractIoConnectorManager {
     @PostConstruct
     private void prepareHandlers() {
         getIoHandler().addSentMessageHandler(LoginRequest.class, MessageHandler.NOOP);
-        getIoHandler().addReceivedMessageHandler(LoginResponse.class, loginResponseHandler); // TODO: Actually handle
+        getIoHandler().addReceivedMessageHandler(LoginResponse.class, loginResponseHandler);
         getIoHandler().addSentMessageHandler(RegisterRequest.class, MessageHandler.NOOP);
-        getIoHandler().addReceivedMessageHandler(RegisterResponse.class, MessageHandler.NOOP); // TODO: Actually handle
+        getIoHandler().addReceivedMessageHandler(RegisterResponse.class, registerResponseHandler);
         getIoHandler().addSentMessageHandler(VerificationRequest.class, MessageHandler.NOOP);
         getIoHandler().addReceivedMessageHandler(VerificationResponse.class, verificationResponseHandler);
 

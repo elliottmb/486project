@@ -1,15 +1,25 @@
 package edu.iastate.cs.theseguys.eventbus;
 
+public class RegisterEvent extends UserSessionEvent {
+    private final boolean successful;
+    private final String message;
 
-import org.springframework.context.ApplicationEvent;
-
-public class RegisterEvent extends ApplicationEvent {
     /**
      * Create a new ApplicationEvent.
      *
      * @param source the object on which the event initially occurred (never {@code null})
      */
-    public RegisterEvent(Object source) {
+    public RegisterEvent(Object source, boolean successful, String message) {
         super(source);
+        this.successful = successful;
+        this.message = message;
+    }
+
+    public boolean isSuccessful() {
+        return successful;
+    }
+
+    public String getMessage() {
+        return message;
     }
 }
