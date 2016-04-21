@@ -16,7 +16,7 @@ public class CustomDemuxingIoHandler extends DemuxingIoHandler {
     @Override
     public void sessionClosed(IoSession session) {
         log.info("SESSION CLOSED");
-        manager.removeConnectedClient(session);
+        manager.removeUserSession(session);
         log.info("CONNECTED CLIENTS: " + manager.getConnectedClients());
     }
 

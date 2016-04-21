@@ -4,6 +4,7 @@ package edu.iastate.cs.theseguys;
 import edu.iastate.cs.theseguys.database.DatabaseManager;
 import edu.iastate.cs.theseguys.model.Peer;
 import edu.iastate.cs.theseguys.network.*;
+import javafx.util.Pair;
 import org.apache.mina.core.session.IoSession;
 import org.apache.mina.filter.codec.ProtocolCodecFilter;
 import org.apache.mina.filter.codec.serialization.ObjectSerializationCodecFactory;
@@ -38,9 +39,8 @@ public class AuthorityClientManager extends AbstractIoAcceptorManager {
     private PeerListRequestHandler peerListRequestHandler;
     @Autowired
     private UserListRequestHandler userListRequestHandler;
-    //iosession to port.  iosession contains client's ip, but we need to also store the port that the client listens for other clients on
-    private ConcurrentMap<IoSession, Integer> connectedClients;
-    private ConcurrentMap<UUID, IoSession> activeSessions;
+    // Map of IoSession to Authorized User ID and Listening Port
+    private ConcurrentMap<IoSession, Pair<UUID, Integer>> activeSessions;
     @Autowired
     private DatabaseManager databaseManager;
     @Autowired
@@ -48,7 +48,6 @@ public class AuthorityClientManager extends AbstractIoAcceptorManager {
 
     public AuthorityClientManager() {
         super(new NioSocketAcceptor(), new CustomDemuxingIoHandler());
-        connectedClients = new ConcurrentHashMap<>();
         activeSessions = new ConcurrentHashMap<>();
 
         ((CustomDemuxingIoHandler) getIoHandler()).setManager(this);
@@ -78,21 +77,23 @@ public class AuthorityClientManager extends AbstractIoAcceptorManager {
     }
 
 
-    public void addNewClient(IoSession session, UUID userID, Integer port) {
-        connectedClients.put(session, port);
-        activeSessions.put(userID, session);
+    public void addUserSession(IoSession session, UUID userID, Integer port) {
+        activeSessions.put(session, new Pair<>(userID, port));
     }
 
-    public void removeConnectedClient(IoSession session) {
-        connectedClients.remove(session);
+    public void removeUserSession(IoSession session) {
+        activeSessions.remove(session);
     }
 
+    public boolean verifyUserSession(IoSession session, UUID userId) {
+        return userId.equals(activeSessions.get(session).getKey());
+    }
 
-    public List<Peer> getAllClients() {
-        return connectedClients.entrySet()
+    public List<Peer> getActivePeers() {
+        return activeSessions.entrySet()
                 .stream()
                 .map(
-                        e -> new Peer(e.getKey().getRemoteAddress().toString(), e.getValue())
+                        e -> new Peer(e.getKey().getRemoteAddress().toString(), e.getValue().getValue())
                 )
                 .collect(Collectors.toList());
     }
@@ -103,7 +104,7 @@ public class AuthorityClientManager extends AbstractIoAcceptorManager {
 
     public String getConnectedClients() {
         String result = "";
-        for (Entry<IoSession, Integer> e : connectedClients.entrySet()) {
+        for (Entry<IoSession, Pair<UUID, Integer>> e : activeSessions.entrySet()) {
             result += e.getKey() + " " + e.getValue() + "\n";
         }
         return result;

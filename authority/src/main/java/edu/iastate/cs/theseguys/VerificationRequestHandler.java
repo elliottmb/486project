@@ -23,6 +23,11 @@ public class VerificationRequestHandler implements MessageHandler<VerificationRe
 
         MessageDatagram message = request.getMessage();
 
+        if (manager.verifyUserSession(session, message.getUserId())) {
+            log.info("Message is from genuine session");
+        } else {
+            log.info("Message is not from genuine session");
+        }
 
     }
 }

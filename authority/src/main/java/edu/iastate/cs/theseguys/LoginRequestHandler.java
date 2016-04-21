@@ -28,7 +28,7 @@ public class LoginRequestHandler implements MessageHandler<LoginRequest> {
         if (u != null) {
             log.info("Login successful");
             UUID userID = u.getId();
-            manager.addNewClient(session, userID, request.getPort());
+            manager.addUserSession(session, userID, request.getPort());
             AuthoritySecurity authSec = new AuthoritySecurity();
             session.write(new LoginResponse(true, userID, authSec.getPublicKey()));
         } else {
