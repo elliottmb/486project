@@ -26,6 +26,22 @@ public class MessageDatagram implements Serializable {
         this.signature = signature;
     }
 
+    /**
+     * Copy a MessageDatagram's data, but apply a new signature
+     *
+     * @param messageDatagram
+     * @param newSignature
+     */
+    public MessageDatagram(MessageDatagram messageDatagram, byte[] newSignature) {
+        this.id = messageDatagram.getId();
+        this.userId = messageDatagram.getUserId();
+        this.fatherId = messageDatagram.getFatherId();
+        this.motherId = messageDatagram.getMotherId();
+        this.messageBody = messageDatagram.getMessageBody();
+        this.timestamp = messageDatagram.getTimestamp();
+        this.signature = newSignature;
+    }
+
     public MessageDatagram(MessageRecord messageRecord) {
         this.id = messageRecord.getId();
         this.userId = messageRecord.getUserId();
@@ -40,6 +56,16 @@ public class MessageDatagram implements Serializable {
     public String toString() {
         return "MessageDatagram{" +
                 "id=" + id +
+                ", userId=" + userId +
+                ", fatherId=" + fatherId +
+                ", motherId=" + motherId +
+                ", messageBody='" + messageBody + '\'' +
+                ", timestamp=" + timestamp +
+                '}';
+    }
+
+    public String toSignable() {
+        return "{id=" + id +
                 ", userId=" + userId +
                 ", fatherId=" + fatherId +
                 ", motherId=" + motherId +

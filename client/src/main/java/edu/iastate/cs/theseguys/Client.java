@@ -93,6 +93,7 @@ public class Client implements CommandLineRunner {
         );
         latch.await();
 
+        final CountDownLatch stageLatch = new CountDownLatch(1);
         Platform.runLater(
                 () -> {
                     Stage stage = new Stage();
@@ -107,16 +108,17 @@ public class Client implements CommandLineRunner {
 
                     Parent root = null;
                     try {
-                        root = springFXMLLoader.load("/fxml/login.fxml");
+                        root = springFXMLLoader.load("/fxml/connection.fxml");
                         stage.setScene(new Scene(root, 800, 600));
                     } catch (IOException e) {
                         e.printStackTrace();
                         System.exit(0);
                     }
                     stage.show();
+                    stageLatch.countDown();
                 }
         );
-
+        stageLatch.await();
 
         ConnectFuture authorityFuture = null;
         for (int i = 0; i < 5; i++) {
@@ -296,7 +298,7 @@ public class Client implements CommandLineRunner {
 
                                 idealParentRecords = databaseManager.getIdealParentRecords();
 
-                                System.out.println("We are only locally handling this, for now");
+                                System.out.println("We are sending the message off to the central authority!");
                                 MessageDatagram test = new MessageDatagram(
                                         UUID.randomUUID(),
                                         authorityManager.getUserId(),
@@ -308,8 +310,6 @@ public class Client implements CommandLineRunner {
                                 );
 
                                 authorityManager.write(new VerificationRequest(test));
-
-                                databaseManager.getWaiting().push(new Pair<>(-1L, test));
                             }
                         }
                     } else {

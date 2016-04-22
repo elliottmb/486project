@@ -4,6 +4,7 @@ import edu.iastate.cs.theseguys.Client;
 import edu.iastate.cs.theseguys.SpringFXMLLoader;
 import edu.iastate.cs.theseguys.database.MessageRecord;
 import edu.iastate.cs.theseguys.network.MessageDatagram;
+import edu.iastate.cs.theseguys.network.VerificationRequest;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -41,8 +42,17 @@ public class ChatController {
         if (!input.getText().equals("")) {
             chat.appendText(input.getText() + "\n");
             Pair<MessageRecord, MessageRecord> parents = client.getDatabaseManager().getIdealParentRecords();
-            MessageDatagram messageDatagram = new MessageDatagram(UUID.randomUUID(), UUID.randomUUID(), parents.getKey().getId(), parents.getValue().getId(), input.getText(), new Timestamp(System.currentTimeMillis()), new byte[256]);
-            client.getDatabaseManager().getWaiting().push(new Pair<>(-1L, messageDatagram));
+            MessageDatagram messageDatagram = new MessageDatagram(
+                    UUID.randomUUID(),
+                    client.getAuthorityManager().getUserId(),
+                    parents.getKey().getId(),
+                    parents.getValue().getId(),
+                    input.getText(),
+                    new Timestamp(System.currentTimeMillis()),
+                    new byte[256]
+            );
+
+            client.getAuthorityManager().write(new VerificationRequest(messageDatagram));
         }
     }
 

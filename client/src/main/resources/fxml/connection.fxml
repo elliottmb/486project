@@ -16,7 +16,7 @@
       <RowConstraints />
    </rowConstraints>
    <children>
-      <ProgressIndicator />
+      <ProgressIndicator fx:id="progressIndicator" />
       <Label text="Connecting to Authority" GridPane.rowIndex="1" />
       <Button fx:id="retry" alignment="CENTER" disable="true" mnemonicParsing="false" onAction="#reconnect" opacity="0.0" text="Retry" GridPane.rowIndex="2" />
    </children>
