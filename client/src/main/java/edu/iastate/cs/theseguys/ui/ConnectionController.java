@@ -3,6 +3,7 @@ package edu.iastate.cs.theseguys.ui;
 import edu.iastate.cs.theseguys.Client;
 import edu.iastate.cs.theseguys.SpringFXMLLoader;
 import edu.iastate.cs.theseguys.eventbus.AuthorityConnectedEvent;
+import edu.iastate.cs.theseguys.eventbus.AuthorityConnectionFailedEvent;
 import edu.iastate.cs.theseguys.eventbus.AuthorityEvent;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
@@ -10,7 +11,6 @@ import javafx.fxml.FXML;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
-import javafx.scene.control.ProgressBar;
 import javafx.scene.control.ProgressIndicator;
 import javafx.stage.Stage;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,6 +60,13 @@ public class ConnectionController implements ApplicationListener<AuthorityEvent>
                         }
                     }
             );
+        } else {
+            if (event instanceof AuthorityConnectionFailedEvent) {
+                //TODO: Show retry button and such
+                AuthorityConnectionFailedEvent authorityConnectionFailedEvent = (AuthorityConnectionFailedEvent) event;
+
+            }
+            // TODO: Not sure if AuthorityDisconnectedEvent would ever trigger while on this screen.
         }
     }
 }
