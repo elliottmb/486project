@@ -145,7 +145,11 @@ public class DatabaseManager {
      */
     public Pair<MessageRecord, MessageRecord> getIdealParentRecords() {
         Iterable<MessageRecord> records = getRecordsByHowFruitless();
-        return new Pair<>(Iterables.getFirst(records, null), Iterables.get(records, 1, null));
+        // We're guaranteed to have at least the root
+        MessageRecord father = Iterables.getFirst(records, null);
+        MessageRecord mother = Iterables.get(records, 1, father);
+
+        return new Pair<>(father, mother);
     }
 
     /**

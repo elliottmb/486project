@@ -154,54 +154,16 @@ public class Client implements CommandLineRunner {
         );*/
 
 
-        UUID userOne = UUID.randomUUID();
-        UUID userTwo = UUID.randomUUID();
-
-        UUID rootId = UUID.randomUUID();
+        UUID rootId = new UUID(0, 0);
 
         MessageRepository repository = this.getDatabaseManager().getRepository();
 
-        MessageRecord root = new MessageRecord(rootId, UUID.randomUUID(), "Welcome to DILC", new Timestamp(System.currentTimeMillis()), new byte[256]);
-        root.setFather(root);
-        root.setMother(root);
-        try {
-            Thread.sleep(1000);                 //1000 milliseconds is one second.
-        } catch (InterruptedException ex) {
-            Thread.currentThread().interrupt();
-        }
-        MessageRecord messageA = new MessageRecord(UUID.randomUUID(), userOne, "test", new Timestamp(System.currentTimeMillis()), new byte[256]);
-        messageA.setFather(root);
-        messageA.setMother(root);
-        try {
-            Thread.sleep(1000);                 //1000 milliseconds is one second.
-        } catch (InterruptedException ex) {
-            Thread.currentThread().interrupt();
-        }
-        MessageRecord messageB = new MessageRecord(UUID.randomUUID(), userTwo, "test 2", new Timestamp(System.currentTimeMillis()), new byte[256]);
-        messageB.setFather(root);
-        messageB.setMother(messageA);
-        try {
-            Thread.sleep(1000);                 //1000 milliseconds is one second.
-        } catch (InterruptedException ex) {
-            Thread.currentThread().interrupt();
-        }
-        MessageRecord messageC = new MessageRecord(UUID.randomUUID(), userOne, "test 3", new Timestamp(System.currentTimeMillis()), new byte[256]);
-        messageC.setFather(messageA);
-        messageC.setMother(messageB);
-
-        repository.save(root);
-        repository.save(messageA);
-        repository.save(messageB);
-        repository.save(messageC);
-
-        //log.info("Messages currently in database: ");
-        for (MessageRecord message : repository.findAll()) {
-            //log.info(message.toString());
-        }
-
-        // log.info("Messages currently in database for user '" + userOne + "':");
-        for (MessageRecord message : repository.findByUserId(userOne)) {
-            //log.info(message.toString());
+        // Make sure client has "root" node
+        if (!repository.exists(rootId)) {
+            MessageRecord root = new MessageRecord(rootId, rootId, "Welcome to DILC", new Timestamp(0L), new byte[256]);
+            root.setFather(root);
+            root.setMother(root);
+            repository.save(root);
         }
 
         serverManager.run();
@@ -323,12 +285,12 @@ public class Client implements CommandLineRunner {
         Pair<MessageRecord, MessageRecord> possibleParents = databaseManager.getIdealParentRecords();
 
         log.info("---- Possible parents for a new message are:");
-        log.info(possibleParents.getKey().toString());
-        log.info(possibleParents.getKey().getFather().toString());
-        log.info(possibleParents.getKey().getMother().toString());
-        log.info(possibleParents.getValue().toString());
-        log.info(possibleParents.getValue().getFather().toString());
-        log.info(possibleParents.getValue().getMother().toString());
+        log.info("Father: " + possibleParents.getKey().toString());
+        log.info("-- Father: " + possibleParents.getKey().getFather().toString());
+        log.info("-- Mother: " + possibleParents.getKey().getMother().toString());
+        log.info("Mother: " + possibleParents.getValue().toString());
+        log.info("-- Father: " + possibleParents.getValue().getFather().toString());
+        log.info("-- Mother: " + possibleParents.getValue().getMother().toString());
 
 
         try {
