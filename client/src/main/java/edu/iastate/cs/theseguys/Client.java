@@ -28,7 +28,6 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
 import javax.swing.*;
-import java.awt.*;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -52,7 +51,7 @@ import java.util.concurrent.CountDownLatch;
 public class Client implements CommandLineRunner {
     private static final Logger log = LoggerFactory.getLogger(Client.class);
     @Autowired
-    ApplicationEventPublisher applicationEventPublisher;
+    private ApplicationEventPublisher applicationEventPublisher;
     @Autowired
     private AuthorityManager authorityManager;
     @Autowired
@@ -327,52 +326,4 @@ public class Client implements CommandLineRunner {
         return databaseManager;
     }
 
-    class SimpleFrame extends JFrame {
-        JPanel pnlButton = new JPanel();
-        // Buttons
-        JButton btnAddFlight = new JButton("Add Flight");
-        private Client client;
-
-        public SimpleFrame(Client client) {
-            super("dILC");
-
-            this.client = client;
-            setSize(new Dimension(300, 300));
-            setPreferredSize(new Dimension(300, 300));
-            setMaximumSize(new Dimension(300, 300));
-            setMinimumSize(new Dimension(300, 300));
-            setVisible(true);
-            pack();
-            setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-
-            btnAddFlight.setBounds(60, 400, 220, 30);
-
-            // JPanel bounds
-            pnlButton.setBounds(800, 800, 200, 100);
-
-            // Adding to JFrame
-            pnlButton.add(btnAddFlight);
-            add(pnlButton);
-
-            btnAddFlight.addActionListener(
-                    e -> {
-                        Pair<MessageRecord, MessageRecord> parents = client.databaseManager.getIdealParentRecords();
-
-                        MessageDatagram test = new MessageDatagram(
-                                UUID.randomUUID(),
-                                UUID.randomUUID(),
-                                parents.getKey().getId(),
-                                parents.getValue().getId(),
-                                "From a button!",
-                                new Timestamp(System.currentTimeMillis()),
-                                new byte[256]
-                        );
-
-                        databaseManager.getWaiting().push(new Pair<>(123912039L, test));
-
-                    }
-            );
-
-        }
-    }
 }

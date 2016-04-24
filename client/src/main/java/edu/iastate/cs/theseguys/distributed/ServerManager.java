@@ -6,7 +6,6 @@ import edu.iastate.cs.theseguys.network.*;
 import org.apache.mina.filter.codec.ProtocolCodecFilter;
 import org.apache.mina.filter.codec.serialization.ObjectSerializationCodecFactory;
 import org.apache.mina.filter.logging.LoggingFilter;
-import org.apache.mina.filter.ssl.SslFilter;
 import org.apache.mina.handler.demux.MessageHandler;
 import org.apache.mina.transport.socket.nio.NioSocketAcceptor;
 import org.slf4j.Logger;
@@ -15,11 +14,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import javax.net.ssl.SSLContext;
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
 
 @Component
 public class ServerManager extends AbstractIoAcceptorManager {
@@ -32,6 +28,8 @@ public class ServerManager extends AbstractIoAcceptorManager {
     private LatestMessageRequestHandler latestMessageRequestHandler;
     @Autowired
     private LoggingMessageHandler loggingMessageHandler;
+    @Autowired
+    private ParentsOfRequestHandler parentsOfRequestHandler;
 
     public ServerManager() {
         super(new NioSocketAcceptor(), new ServerDemuxingIoHandler());
@@ -41,10 +39,13 @@ public class ServerManager extends AbstractIoAcceptorManager {
 
     @PostConstruct
     private void prepareHandlers() {
+        getIoHandler().addSentMessageHandler(NewMessageAnnouncement.class, loggingMessageHandler);
         getIoHandler().addReceivedMessageHandler(LatestMessageRequest.class, latestMessageRequestHandler);
-        getIoHandler().addReceivedMessageHandler(NewMessageAnnouncement.class, loggingMessageHandler);
         getIoHandler().addSentMessageHandler(LatestMessageResponse.class, MessageHandler.NOOP);
+        getIoHandler().addReceivedMessageHandler(ParentsOfRequest.class, parentsOfRequestHandler);
+        getIoHandler().addSentMessageHandler(ParentsOfResponse.class, MessageHandler.NOOP);
 
+        /*
         try {
             SSLContext sslContext = SSLContext.getInstance("TLS");
             sslContext.init(null, null, null);
@@ -54,6 +55,7 @@ public class ServerManager extends AbstractIoAcceptorManager {
             log.warn("Failed to establish SSLFitler");
             e.printStackTrace();
         }
+        */
         getService().getFilterChain().addLast("logger", new LoggingFilter());
         getService().getFilterChain().addLast("codec", new ProtocolCodecFilter(new ObjectSerializationCodecFactory()));
     }

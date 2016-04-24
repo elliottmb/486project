@@ -5,29 +5,42 @@ import edu.iastate.cs.theseguys.database.MessageRecord;
 import edu.iastate.cs.theseguys.database.MessageRepository;
 import edu.iastate.cs.theseguys.database.QMessageRecord;
 import edu.iastate.cs.theseguys.distributed.ClientManager;
+import edu.iastate.cs.theseguys.distributed.ServerManager;
 import edu.iastate.cs.theseguys.network.MessageDatagram;
+import edu.iastate.cs.theseguys.network.NewMessageAnnouncement;
+import edu.iastate.cs.theseguys.network.ParentsOfRequest;
 import javafx.util.Pair;
+import org.apache.mina.core.session.IoSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
+import java.util.Collections;
 import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.atomic.AtomicLong;
 
 @Component
 public class DatabaseManager {
     private static final Logger log = LoggerFactory.getLogger(DatabaseManager.class);
     @Autowired
+    private ApplicationEventPublisher applicationEventPublisher;
+    @Autowired
     private MessageRepository repository;
     @Autowired
     private ClientManager clientManager;
-    private ConcurrentLinkedDeque<Pair<Long, MessageDatagram>> waiting;
+    @Autowired
+    private ServerManager serverManager;
+    private ConcurrentLinkedDeque<Pair<Long, MessageDatagram>> toProcess;
+    private ConcurrentLinkedDeque<Pair<AtomicLong, Pair<Long, MessageDatagram>>> waitingOnResponse;
     private ConcurrentLinkedDeque<Pair<Long, MessageDatagram>> ready;
     private Thread processThread;
     private QueueProcessor queueProcessor;
 
     public DatabaseManager() {
-        waiting = new ConcurrentLinkedDeque<>();
+        toProcess = new ConcurrentLinkedDeque<>();
+        waitingOnResponse = new ConcurrentLinkedDeque<>();
         ready = new ConcurrentLinkedDeque<>();
 
 
@@ -36,8 +49,12 @@ public class DatabaseManager {
         processThread.start();
     }
 
-    public ConcurrentLinkedDeque<Pair<Long, MessageDatagram>> getWaiting() {
-        return waiting;
+    public ConcurrentLinkedDeque<Pair<Long, MessageDatagram>> getToProcess() {
+        return toProcess;
+    }
+
+    public ConcurrentLinkedDeque<Pair<AtomicLong, Pair<Long, MessageDatagram>>> getWaitingOnResponse() {
+        return waitingOnResponse;
     }
 
     public ConcurrentLinkedDeque<Pair<Long, MessageDatagram>> getReady() {
@@ -73,8 +90,8 @@ public class DatabaseManager {
 
     public synchronized void processQueue() {
         //log.info("Processing...");
-        if (!waiting.isEmpty()) {
-            Pair<Long, MessageDatagram> head = waiting.pop();
+        if (!toProcess.isEmpty()) {
+            Pair<Long, MessageDatagram> head = toProcess.pop();
 
             MessageDatagram headDatagram = head.getValue();
 
@@ -88,35 +105,46 @@ public class DatabaseManager {
                     ready.add(head);
                 } else {
                     // Make sure father isn't processed or in the ready queue already
-                    if (!getRepository().exists(headDatagram.getFatherId())
-                            && ready
-                            .stream()
-                            .filter(
-                                    e -> e.getValue().getId() == headDatagram.getFatherId()
-                            )
-                            .count() == 0
+                    log.info("We don't have either the father or mother of " + headDatagram.getId());
+
+
+                    if (
+                            ready
+                                    .stream()
+                                    .filter(
+                                            e -> e.getValue().getId() == headDatagram.getFatherId()
+                                    )
+                                    .count() == 0
+                                    ||
+                                    ready
+                                            .stream()
+                                            .filter(
+                                                    e -> e.getValue().getId() == headDatagram.getMotherId()
+                                            )
+                                            .count() == 0
                             ) {
-                        //TODO: Send request for father
                         log.info("We don't have the father of " + headDatagram.getId());
-                    }
-                    if (!getRepository().exists(headDatagram.getFatherId())
-                            && ready
-                            .stream()
-                            .filter(
-                                    e -> e.getValue().getId() == headDatagram.getMotherId()
-                            )
-                            .count() == 0
-                            ) {
-                        //TODO: Send request for mother
-                        log.info("We don't have the mother of " + headDatagram.getId());
+                        IoSession session = clientManager.getSession(head.getKey());
+                        if (session != null) {
+                            session.write(new ParentsOfRequest(Collections.singletonList(headDatagram)));
+                            log.info("Requested parents, moving to the waiting queue, " + headDatagram.getId());
+
+                            // Attach an AtomicLong to the pair to help track time in waiting queue
+                            waitingOnResponse.push(new Pair<>(new AtomicLong(0), head));
+                        } else {
+                            log.warn("Connection with source for " + headDatagram.getId() + " has been lost, messaging all other clients");
+                            clientManager.write(new ParentsOfRequest(Collections.singletonList(headDatagram)));
+                        }
                     }
                     // TODO: Other cases? I don't know. Probably not. (╯°□°)╯︵ ┻━┻
-                    log.info("Adding back to the end of the queue, " + headDatagram.getId());
-                    waiting.add(head);
+
                 }
             } else {
                 log.info("We already have " + headDatagram.getId() + ", removing from queue");
             }
+        }
+        if (!waitingOnResponse.isEmpty()) {
+            //TODO: Handle the waiting period
         }
         if (!ready.isEmpty()) {
             Pair<Long, MessageDatagram> head = ready.pop();
@@ -126,13 +154,20 @@ public class DatabaseManager {
 
             // Be sure!
             if (father == null || mother == null) {
-                log.info("We don't have the mother or father of " + datagram.getId());
-                waiting.add(head);
+                log.info("We have lost the mother or father of " + datagram.getId());
+                toProcess.add(head);
             } else {
                 MessageRecord newRecord = new MessageRecord(datagram.getId(), datagram.getUserId(), datagram.getMessageBody(), datagram.getTimestamp(), datagram.getSignature());
                 newRecord.setFather(father);
                 newRecord.setMother(mother);
                 getRepository().save(newRecord);
+
+
+
+                // If the message originated from this client, notify other clients!
+                if (head.getKey() < 0L) {
+                    serverManager.write(new NewMessageAnnouncement(datagram));
+                }
                 log.info("Saving record for " + datagram.getId());
             }
         }

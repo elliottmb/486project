@@ -22,7 +22,7 @@ public class LatestMessageResponseHandler implements MessageHandler<LatestMessag
 
         MessageDatagram m = message.getMessage();
 
-        databaseManager.getWaiting().push(new Pair<>(session.getId(), m));
+        databaseManager.getToProcess().push(new Pair<>(session.getId(), m));
     }
 }
 

@@ -4,6 +4,7 @@ import edu.iastate.cs.theseguys.network.AbstractMessage;
 import org.apache.mina.core.future.WriteFuture;
 import org.apache.mina.core.service.IoHandler;
 import org.apache.mina.core.service.IoService;
+import org.apache.mina.core.session.IoSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,6 +41,10 @@ public class AbstractIoServiceManager<S extends IoService, I extends IoHandler> 
                         entry -> entry.getValue().write(message)
                 )
                 .collect(Collectors.toList());
+    }
+
+    public IoSession getSession(Long id) {
+        return service.getManagedSessions().get(id);
     }
 
     public S getService() {

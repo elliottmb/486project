@@ -31,7 +31,7 @@ public class VerificationResponseHandler implements MessageHandler<VerificationR
         ClientSecurity clientSecurity = new ClientSecurity();
         if (response.isValid() && clientSecurity.verifySignature(message.toSignable(), message.getSignature(), authorityManager.getPublicKey())) {
             log.info("Signature is " + Arrays.toString(message.getSignature()));
-            databaseManager.getWaiting().push(new Pair<>(-1L, message));
+            databaseManager.getToProcess().push(new Pair<>(-1L, message));
         }
     }
 }

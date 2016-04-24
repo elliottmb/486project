@@ -9,10 +9,17 @@ import java.util.List;
  */
 public class ParentsOfResponse extends AbstractMessage {
     private static final long serialVersionUID = 987820442628229340L;
-    private List<MessageDatagram> parents;
+    private final List<MessageDatagram> parents;
 
     public ParentsOfResponse(List<MessageDatagram> parents) {
         this.parents = parents;
+    }
+
+    @Override
+    public String toString() {
+        return "ParentsOfResponse{" +
+                "parents=" + parents +
+                '}';
     }
 
     public List<MessageDatagram> getParents() {
