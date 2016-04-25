@@ -19,6 +19,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
 import java.util.Collections;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -82,11 +83,15 @@ public class DatabaseManager {
     }
 
     public boolean hasFather(MessageRecord m) {
-        return repository.findOne(m.getFather().getId()) != null;
+        return exists(m.getFather().getId());
     }
 
     public boolean hasMother(MessageRecord m) {
-        return repository.findOne(m.getMother().getId()) != null;
+        return exists(m.getMother().getId());
+    }
+
+    public boolean exists(UUID id) {
+        return getRepository().exists(id);
     }
 
     public synchronized void processQueue() {
@@ -97,10 +102,10 @@ public class DatabaseManager {
             MessageDatagram headDatagram = head.getValue();
 
             // Make sure it doesn't already exist
-            if (!getRepository().exists(headDatagram.getId())) {
+            if (!exists(headDatagram.getId())) {
                 log.info("We don't already have " + headDatagram.getId());
                 // Check if we have both the father and mother already
-                if (getRepository().exists(headDatagram.getFatherId()) && getRepository().exists(headDatagram.getMotherId())) {
+                if (exists(headDatagram.getFatherId()) && exists(headDatagram.getMotherId())) {
                     log.info("We have the parents for " + headDatagram.getId());
                     // If we do, move this guy to the ready queue
                     ready.add(head);
@@ -159,7 +164,7 @@ public class DatabaseManager {
             Pair<AtomicLong, Pair<Long, MessageDatagram>> head = waitingOnResponse.pop();
             MessageDatagram headDatagram = head.getValue().getValue();
 
-            if (getRepository().exists(headDatagram.getFatherId()) && getRepository().exists(headDatagram.getMotherId())) {
+            if (exists(headDatagram.getFatherId()) && exists(headDatagram.getMotherId())) {
                 ready.push(head.getValue());
             } else {
                 long waited = head.getKey().getAndIncrement();

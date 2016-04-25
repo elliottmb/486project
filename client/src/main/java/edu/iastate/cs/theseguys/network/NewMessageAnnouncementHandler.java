@@ -2,7 +2,6 @@ package edu.iastate.cs.theseguys.network;
 
 import edu.iastate.cs.theseguys.AuthorityManager;
 import edu.iastate.cs.theseguys.DatabaseManager;
-import edu.iastate.cs.theseguys.security.ClientSecurity;
 import javafx.util.Pair;
 import org.apache.mina.core.session.IoSession;
 import org.apache.mina.handler.demux.MessageHandler;
@@ -26,9 +25,7 @@ public class NewMessageAnnouncementHandler implements MessageHandler<NewMessageA
 
         MessageDatagram message = announcement.getMessage();
 
-
-        ClientSecurity clientSecurity = new ClientSecurity();
-        if (clientSecurity.verifySignature(message.toSignable(), message.getSignature(), authorityManager.getPublicKey())) {
+        if (authorityManager.verifySignature(message)) {
             databaseManager.getToProcess().push(new Pair<>(session.getId(), message));
         } else {
             log.warn("Received an invalid message");

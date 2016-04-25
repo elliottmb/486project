@@ -1,8 +1,11 @@
 package edu.iastate.cs.theseguys.security;
 
+import org.springframework.stereotype.Component;
+
 import java.io.UnsupportedEncodingException;
 import java.security.*;
 
+@Component
 public class ClientSecurity {
 
     public boolean verifySignature(String message, byte[] sig, PublicKey publicKey) {

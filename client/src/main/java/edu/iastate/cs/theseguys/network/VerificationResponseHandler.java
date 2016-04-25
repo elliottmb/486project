@@ -2,7 +2,6 @@ package edu.iastate.cs.theseguys.network;
 
 import edu.iastate.cs.theseguys.AuthorityManager;
 import edu.iastate.cs.theseguys.DatabaseManager;
-import edu.iastate.cs.theseguys.security.ClientSecurity;
 import javafx.util.Pair;
 import org.apache.mina.core.session.IoSession;
 import org.apache.mina.handler.demux.MessageHandler;
@@ -28,10 +27,11 @@ public class VerificationResponseHandler implements MessageHandler<VerificationR
 
         MessageDatagram message = response.getMessage();
 
-        ClientSecurity clientSecurity = new ClientSecurity();
-        if (response.isValid() && clientSecurity.verifySignature(message.toSignable(), message.getSignature(), authorityManager.getPublicKey())) {
+        if (response.isValid() && authorityManager.verifySignature(message)) {
             log.info("Signature is " + Arrays.toString(message.getSignature()));
             databaseManager.getToProcess().push(new Pair<>(-1L, message));
+        } else {
+            log.warn("Received an invalid message");
         }
     }
 }

@@ -1,6 +1,7 @@
 package edu.iastate.cs.theseguys;
 
 import edu.iastate.cs.theseguys.network.*;
+import edu.iastate.cs.theseguys.security.ClientSecurity;
 import org.apache.mina.filter.codec.ProtocolCodecFilter;
 import org.apache.mina.filter.codec.serialization.ObjectSerializationCodecFactory;
 import org.apache.mina.filter.logging.LoggingFilter;
@@ -28,6 +29,8 @@ public class AuthorityManager extends AbstractIoConnectorManager {
     private VerificationResponseHandler verificationResponseHandler;
     @Autowired
     private RegisterResponseHandler registerResponseHandler;
+    @Autowired
+    private ClientSecurity clientSecurity;
 
     public AuthorityManager() {
         super(new NioSocketConnector(), new DemuxingIoHandler());
@@ -48,6 +51,15 @@ public class AuthorityManager extends AbstractIoConnectorManager {
 
         getService().getFilterChain().addLast("logger", new LoggingFilter());
         getService().getFilterChain().addLast("codec", new ProtocolCodecFilter(new ObjectSerializationCodecFactory()));
+    }
+
+
+    public synchronized boolean verifySignature(MessageDatagram message) {
+        return verifySignature(message.toSignable(), message.getSignature());
+    }
+
+    public synchronized boolean verifySignature(String message, byte[] sig) {
+        return clientSecurity.verifySignature(message, sig, getPublicKey());
     }
 
     public synchronized UUID getUserId() {
