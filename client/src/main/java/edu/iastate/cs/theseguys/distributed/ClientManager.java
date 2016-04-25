@@ -19,6 +19,8 @@ public class ClientManager extends AbstractIoConnectorManager {
     private static final Logger log = LoggerFactory.getLogger(ClientManager.class);
 
     @Autowired
+    private ServerManager serverManager;
+    @Autowired
     private LoggingMessageHandler loggingMessageHandler;
 
     @Autowired
@@ -39,6 +41,9 @@ public class ClientManager extends AbstractIoConnectorManager {
         getIoHandler().addReceivedMessageHandler(LatestMessageResponse.class, latestMessageResponseHandler);
         getIoHandler().addSentMessageHandler(ParentsOfRequest.class, MessageHandler.NOOP);
         getIoHandler().addReceivedMessageHandler(ParentsOfResponse.class, parentsOfResponseHandler);
+
+        ((ManagedDemuxingIoHandler) getIoHandler()).setClientManager(this);
+        ((ManagedDemuxingIoHandler) getIoHandler()).setServerManager(serverManager);
 
 
         /*

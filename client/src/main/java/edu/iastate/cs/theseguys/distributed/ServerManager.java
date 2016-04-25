@@ -25,6 +25,8 @@ public class ServerManager extends AbstractIoAcceptorManager {
     @Autowired
     private Client client;
     @Autowired
+    private ClientManager clientManager;
+    @Autowired
     private LatestMessageRequestHandler latestMessageRequestHandler;
     @Autowired
     private LoggingMessageHandler loggingMessageHandler;
@@ -44,6 +46,10 @@ public class ServerManager extends AbstractIoAcceptorManager {
         getIoHandler().addSentMessageHandler(LatestMessageResponse.class, MessageHandler.NOOP);
         getIoHandler().addReceivedMessageHandler(ParentsOfRequest.class, parentsOfRequestHandler);
         getIoHandler().addSentMessageHandler(ParentsOfResponse.class, MessageHandler.NOOP);
+
+        ((ManagedDemuxingIoHandler) getIoHandler()).setClientManager(clientManager);
+        ((ManagedDemuxingIoHandler) getIoHandler()).setServerManager(this);
+
 
         /*
         try {
