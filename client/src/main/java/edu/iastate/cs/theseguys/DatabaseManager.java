@@ -6,6 +6,7 @@ import edu.iastate.cs.theseguys.database.MessageRepository;
 import edu.iastate.cs.theseguys.database.QMessageRecord;
 import edu.iastate.cs.theseguys.distributed.ClientManager;
 import edu.iastate.cs.theseguys.distributed.ServerManager;
+import edu.iastate.cs.theseguys.network.AncestorsOfRequest;
 import edu.iastate.cs.theseguys.network.MessageDatagram;
 import edu.iastate.cs.theseguys.network.NewMessageAnnouncement;
 import edu.iastate.cs.theseguys.network.ParentsOfRequest;
@@ -108,33 +109,44 @@ public class DatabaseManager {
                     log.info("We don't have either the father or mother of " + headDatagram.getId());
 
 
-                    if (
-                            ready
-                                    .stream()
-                                    .filter(
-                                            e -> e.getValue().getId() == headDatagram.getFatherId()
-                                    )
-                                    .count() == 0
-                                    ||
-                                    ready
-                                            .stream()
-                                            .filter(
-                                                    e -> e.getValue().getId() == headDatagram.getMotherId()
-                                            )
-                                            .count() == 0
-                            ) {
+                    boolean readyHasFather = ready
+                            .stream()
+                            .anyMatch(
+                                    e -> e.getValue().getId() == headDatagram.getFatherId()
+                            );
+
+                    boolean readyHasMother = ready
+                            .stream()
+                            .anyMatch(
+                                    e -> e.getValue().getId() == headDatagram.getMotherId()
+                            );
+
+                    if (!readyHasFather || !readyHasMother) {
                         log.info("We don't have the father of " + headDatagram.getId());
                         IoSession session = clientManager.getSession(head.getKey());
-                        if (session != null) {
-                            session.write(new ParentsOfRequest(Collections.singletonList(headDatagram)));
-                            log.info("Requested parents, moving to the waiting queue, " + headDatagram.getId());
+                        boolean waitingHasChild = waitingOnResponse
+                                .stream()
+                                .anyMatch(
+                                        e -> headDatagram.getId() == e.getValue().getValue().getFatherId() || headDatagram.getId() == e.getValue().getValue().getMotherId()
+                                );
 
-                            // Attach an AtomicLong to the pair to help track time in waiting queue
-                            waitingOnResponse.push(new Pair<>(new AtomicLong(0), head));
+                        if (session != null) {
+                            if (waitingHasChild) {
+                                session.write(new AncestorsOfRequest(Collections.singletonList(headDatagram)));
+                            } else {
+                                session.write(new ParentsOfRequest(Collections.singletonList(headDatagram)));
+                            }
                         } else {
-                            log.warn("Connection with source for " + headDatagram.getId() + " has been lost, messaging all other clients");
-                            clientManager.write(new ParentsOfRequest(Collections.singletonList(headDatagram)));
+                            if (waitingHasChild) {
+                                clientManager.write(new AncestorsOfRequest(Collections.singletonList(headDatagram)));
+                            } else {
+                                log.warn("Connection with source for " + headDatagram.getId() + " has been lost, messaging all other clients");
+                                clientManager.write(new ParentsOfRequest(Collections.singletonList(headDatagram)));
+                            }
                         }
+                        log.info("Requested parents, moving to the waiting queue, " + headDatagram.getId());
+                        // Attach an AtomicLong to the pair to help track time in waiting queue
+                        waitingOnResponse.push(new Pair<>(new AtomicLong(0), head));
                     }
                     // TODO: Other cases? I don't know. Probably not. (╯°□°)╯︵ ┻━┻
 
@@ -144,7 +156,18 @@ public class DatabaseManager {
             }
         }
         if (!waitingOnResponse.isEmpty()) {
-            //TODO: Handle the waiting period
+            Pair<AtomicLong, Pair<Long, MessageDatagram>> head = waitingOnResponse.pop();
+            MessageDatagram headDatagram = head.getValue().getValue();
+
+            if (getRepository().exists(headDatagram.getFatherId()) && getRepository().exists(headDatagram.getMotherId())) {
+                ready.push(head.getValue());
+            } else {
+                long waited = head.getKey().getAndIncrement();
+
+                //TODO: Handle the waiting period
+                waitingOnResponse.push(head);
+            }
+
         }
         if (!ready.isEmpty()) {
             Pair<Long, MessageDatagram> head = ready.pop();
@@ -161,7 +184,6 @@ public class DatabaseManager {
                 newRecord.setFather(father);
                 newRecord.setMother(mother);
                 getRepository().save(newRecord);
-
 
 
                 // If the message originated from this client, notify other clients!

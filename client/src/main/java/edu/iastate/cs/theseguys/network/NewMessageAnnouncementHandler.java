@@ -12,8 +12,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-public class LatestMessageResponseHandler implements MessageHandler<LatestMessageResponse> {
-    private static final Logger log = LoggerFactory.getLogger(LatestMessageResponseHandler.class);
+public class NewMessageAnnouncementHandler implements MessageHandler<NewMessageAnnouncement> {
+    private static final Logger log = LoggerFactory.getLogger(NewMessageAnnouncementHandler.class);
     @Autowired
     private DatabaseManager databaseManager;
     @Autowired
@@ -21,10 +21,11 @@ public class LatestMessageResponseHandler implements MessageHandler<LatestMessag
 
 
     @Override
-    public void handleMessage(IoSession session, LatestMessageResponse response) throws Exception {
-        log.info("Received " + response.toString());
+    public void handleMessage(IoSession session, NewMessageAnnouncement announcement) throws Exception {
+        log.info("Received " + announcement.toString());
 
-        MessageDatagram message = response.getMessage();
+        MessageDatagram message = announcement.getMessage();
+
 
         ClientSecurity clientSecurity = new ClientSecurity();
         if (clientSecurity.verifySignature(message.toSignable(), message.getSignature(), authorityManager.getPublicKey())) {

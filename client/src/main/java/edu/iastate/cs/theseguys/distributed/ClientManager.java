@@ -27,16 +27,16 @@ public class ClientManager extends AbstractIoConnectorManager {
     private LatestMessageResponseHandler latestMessageResponseHandler;
     @Autowired
     private ParentsOfResponseHandler parentsOfResponseHandler;
+    @Autowired
+    private NewMessageAnnouncementHandler newMessageAnnouncementHandler;
 
     public ClientManager() {
         super(new NioSocketConnector(), new ClientDemuxingIoHandler());
-
-
     }
 
     @PostConstruct
     private void prepareHandlers() {
-        getIoHandler().addReceivedMessageHandler(NewMessageAnnouncement.class, loggingMessageHandler);
+        getIoHandler().addReceivedMessageHandler(NewMessageAnnouncement.class, newMessageAnnouncementHandler);
         getIoHandler().addSentMessageHandler(LatestMessageRequest.class, MessageHandler.NOOP);
         getIoHandler().addReceivedMessageHandler(LatestMessageResponse.class, latestMessageResponseHandler);
         getIoHandler().addSentMessageHandler(ParentsOfRequest.class, MessageHandler.NOOP);

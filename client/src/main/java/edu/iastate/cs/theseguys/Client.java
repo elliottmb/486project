@@ -135,23 +135,12 @@ public class Client implements CommandLineRunner {
         }
         if (authorityFuture != null && authorityFuture.isConnected()) {
             log.info("Successfully connect to authority.");
-            // TODO: Handle this event in the ui controllers to transition to login scene
             applicationEventPublisher.publishEvent(new AuthorityConnectedEvent(this));
         } else {
             log.warn("Failed to connect to authority, max number of attempts. Exiting.");
             dispose();
             System.exit(0);
         }
-
-        /*
-        EventQueue.invokeLater(
-                () -> {
-                    JFrame frame = new SimpleFrame(this);
-
-
-                }
-        );*/
-
 
         UUID rootId = new UUID(0, 0);
 
@@ -166,19 +155,6 @@ public class Client implements CommandLineRunner {
         }
 
         serverManager.run();
-
-        ConnectFuture firstConnection = clientManager.connect(new InetSocketAddress("localhost", 5050));
-        //ConnectFuture secondConnection = clientManager.connect(new InetSocketAddress("localhost", 5050));
-
-
-        // We need to wait on at least one connection since we're doing it in the main method here instead of via a handler
-        firstConnection.awaitUninterruptibly();
-        // secondConnection.awaitUninterruptibly();
-
-        //clientManager.write(new NewMessageAnnouncement(messageA));
-        //clientManager.write(new NewMessageAnnouncement(messageB));
-        //clientManager.write(new NewMessageAnnouncement(messageC));
-        //clientManager.write(new LatestMessageRequest());
 
         MessageRecord oldest = databaseManager.getRepository().findFirstByOrderByTimestampAsc();
 
