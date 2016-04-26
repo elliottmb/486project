@@ -22,6 +22,7 @@ import org.springframework.stereotype.Component;
 import java.util.Collections;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicLong;
 
 @Component
@@ -36,15 +37,15 @@ public class DatabaseManager {
     @Autowired
     private ServerManager serverManager;
     private ConcurrentLinkedDeque<Pair<Long, MessageDatagram>> toProcess;
-    private ConcurrentLinkedDeque<Pair<AtomicLong, Pair<Long, MessageDatagram>>> waitingOnResponse;
-    private ConcurrentLinkedDeque<Pair<Long, MessageDatagram>> ready;
+    private CopyOnWriteArrayList<Pair<AtomicLong, Pair<Long, MessageDatagram>>> waitingOnResponse;
+    private CopyOnWriteArrayList<Pair<Long, MessageDatagram>> ready;
     private Thread processThread;
     private QueueProcessor queueProcessor;
 
     public DatabaseManager() {
         toProcess = new ConcurrentLinkedDeque<>();
-        waitingOnResponse = new ConcurrentLinkedDeque<>();
-        ready = new ConcurrentLinkedDeque<>();
+        waitingOnResponse = new CopyOnWriteArrayList<>();
+        ready = new CopyOnWriteArrayList<>();
 
 
         queueProcessor = new QueueProcessor();
@@ -56,13 +57,6 @@ public class DatabaseManager {
         return toProcess;
     }
 
-    public ConcurrentLinkedDeque<Pair<AtomicLong, Pair<Long, MessageDatagram>>> getWaitingOnResponse() {
-        return waitingOnResponse;
-    }
-
-    public ConcurrentLinkedDeque<Pair<Long, MessageDatagram>> getReady() {
-        return ready;
-    }
 
     public void dispose() {
         try {
@@ -98,10 +92,15 @@ public class DatabaseManager {
     public synchronized void processQueue() {
 
         while (!ready.isEmpty()) {
-            Pair<Long, MessageDatagram> head = ready.pop();
+            Pair<Long, MessageDatagram> head = ready.get(0);
+            ready.remove(0);
             MessageDatagram datagram = head.getValue();
             MessageRecord father = getRepository().findOne(datagram.getFatherId());
             MessageRecord mother = getRepository().findOne(datagram.getMotherId());
+
+            log.info("Ready queue processing of " + datagram.getId());
+            log.info("Father result: " + father);
+            log.info("Mother result: " + mother);
 
             // Be sure!
             if (father == null || mother == null) {
@@ -113,7 +112,7 @@ public class DatabaseManager {
                 MessageRecord newRecord = new MessageRecord(datagram.getId(), datagram.getUserId(), datagram.getMessageBody(), datagram.getTimestamp(), datagram.getSignature());
                 newRecord.setFather(father);
                 newRecord.setMother(mother);
-                getRepository().save(newRecord);
+                newRecord = getRepository().save(newRecord);
                 applicationEventPublisher.publishEvent(new NewMessageEvent(this, newRecord));
 
                 // If the message originated from this client, notify other clients!
@@ -124,7 +123,8 @@ public class DatabaseManager {
         }
 
         if (!waitingOnResponse.isEmpty()) {
-            Pair<AtomicLong, Pair<Long, MessageDatagram>> head = waitingOnResponse.pop();
+            Pair<AtomicLong, Pair<Long, MessageDatagram>> head = waitingOnResponse.get(0);
+            waitingOnResponse.remove(0);
             MessageDatagram headDatagram = head.getValue().getValue();
 
             if (exists(headDatagram.getFatherId()) && exists(headDatagram.getMotherId())) {
@@ -153,14 +153,26 @@ public class DatabaseManager {
             boolean readyHasMother = ready
                     .stream()
                     .anyMatch(
-                            e -> e.getValue().getId() == headDatagram.getMotherId()
+                            e -> e.getValue().getId().equals(headDatagram.getMotherId())
                     );
 
             boolean waitingHasChild = waitingOnResponse
                     .stream()
                     .anyMatch(
-                            e -> headDatagram.getId() == e.getValue().getValue().getFatherId() || headDatagram.getId() == e.getValue().getValue().getMotherId()
+                            e -> headDatagram.getId().equals(e.getValue().getValue().getFatherId()) || headDatagram.getId().equals(e.getValue().getValue().getMotherId())
                     );
+
+            boolean waitingHasThis = waitingOnResponse
+                    .stream()
+                    .anyMatch(
+                            e -> headDatagram.getId().equals(e.getValue().getValue().getId())
+                    );
+
+            log.info("toProcess: " + headDatagram.getId());
+            log.info("readyHasFather: " + readyHasFather);
+            log.info("readyHasMother: " + readyHasMother);
+            log.info("waitingHasChild: " + waitingHasChild);
+            log.info("waitingHasThis: " + waitingHasThis);
 
             // Make sure it doesn't already exist
             if (!exists(headDatagram.getId())) {
@@ -195,11 +207,7 @@ public class DatabaseManager {
                         }
                         log.info("Requested parents for " + headDatagram.getId() + ", moving to the waiting queue");
 
-                        boolean waitingHasThis = waitingOnResponse
-                                .stream()
-                                .anyMatch(
-                                        e -> e.getValue().getValue().getId() == headDatagram.getId()
-                                );
+
                         if (!waitingHasThis) {
                             // Attach an AtomicLong to the pair to help track time in waiting queue
                             waitingOnResponse.add(new Pair<>(new AtomicLong(0), head));
