@@ -21,8 +21,6 @@ public class PeerListRequestHandler implements MessageHandler<PeerListRequest> {
         List<Peer> users = manager.getActivePeers();
 
         session.write(new PeerListResponse(users));
-
-
     }
 }
 

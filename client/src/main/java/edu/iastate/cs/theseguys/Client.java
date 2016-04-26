@@ -157,6 +157,8 @@ public class Client implements CommandLineRunner {
         }
 
         serverManager.run();
+        
+ 
 
         MessageRecord oldest = databaseManager.getRepository().findFirstByOrderByTimestampAsc();
 
