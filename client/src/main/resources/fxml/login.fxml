@@ -26,8 +26,8 @@
    
        <HBox alignment="center" spacing="10" GridPane.columnIndex="1" GridPane.rowIndex="4">
       <children>
-              <Button onAction="#button" text="Sign in" />
-              <Button onAction="#button" text="Register" />
+              <Button fx:id="login" onAction="#button" text="Sign in" />
+              <Button fx:id="register" onAction="#button" text="Register" />
       </children>
        </HBox>
    

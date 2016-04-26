@@ -22,7 +22,7 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 
-//TODO For chat use TextArea
+
 
 @Component
 public class LoginController implements ApplicationListener<UserSessionEvent> {
@@ -33,6 +33,10 @@ public class LoginController implements ApplicationListener<UserSessionEvent> {
     private PasswordField password;
     @FXML
     private Text error;
+    @FXML
+    private Button login;
+    @FXML
+    private Button register;
     @Autowired
     private SpringFXMLLoader springFXMLLoader;
     @Autowired
@@ -47,7 +51,9 @@ public class LoginController implements ApplicationListener<UserSessionEvent> {
             } else {
                 InetSocketAddress serverAddress = (InetSocketAddress) client.getServerManager().getService().getLocalAddress();
                 client.getAuthorityManager().write(new LoginRequest(username.getText(), password.getText(), serverAddress.getPort()));
-                // TODO: Disable buttons or indicate something here
+                error.setText("");
+                login.setDisable(true);
+                register.setDisable(true);
             }
 
         }
@@ -76,7 +82,9 @@ public class LoginController implements ApplicationListener<UserSessionEvent> {
                             }
 
                         } else {
-                            // TODO: Undo the disabling and such done above, and maybe indicate failure
+                        	login.setDisable(false);
+                            register.setDisable(false);
+                            error.setText("Username or password is incorrect.");
                         }
                     }
             );

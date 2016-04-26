@@ -63,6 +63,8 @@ public class ConnectionController implements ApplicationListener<AuthorityEvent>
         } else {
             if (event instanceof AuthorityConnectionFailedEvent) {
                 //TODO: Show retry button and such
+            	retry.setDisable(false);
+            	retry.setOpacity(1.0);
                 AuthorityConnectionFailedEvent authorityConnectionFailedEvent = (AuthorityConnectionFailedEvent) event;
 
             }

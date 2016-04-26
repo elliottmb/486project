@@ -5,6 +5,7 @@ import edu.iastate.cs.theseguys.database.MessageRepository;
 import edu.iastate.cs.theseguys.distributed.ClientManager;
 import edu.iastate.cs.theseguys.distributed.ServerManager;
 import edu.iastate.cs.theseguys.eventbus.AuthorityConnectedEvent;
+import edu.iastate.cs.theseguys.eventbus.AuthorityConnectionFailedEvent;
 import edu.iastate.cs.theseguys.network.LoginRequest;
 import edu.iastate.cs.theseguys.network.MessageDatagram;
 import edu.iastate.cs.theseguys.network.RegisterRequest;
@@ -138,8 +139,9 @@ public class Client implements CommandLineRunner {
             applicationEventPublisher.publishEvent(new AuthorityConnectedEvent(this));
         } else {
             log.warn("Failed to connect to authority, max number of attempts. Exiting.");
-            dispose();
-            System.exit(0);
+            applicationEventPublisher.publishEvent(new AuthorityConnectionFailedEvent(this));
+            //dispose();
+            //System.exit(0);
         }
 
         UUID rootId = new UUID(0, 0);

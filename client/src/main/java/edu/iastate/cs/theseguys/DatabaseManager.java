@@ -1,16 +1,10 @@
 package edu.iastate.cs.theseguys;
 
-import com.google.common.collect.Iterables;
-import edu.iastate.cs.theseguys.database.MessageRecord;
-import edu.iastate.cs.theseguys.database.MessageRepository;
-import edu.iastate.cs.theseguys.database.QMessageRecord;
-import edu.iastate.cs.theseguys.distributed.ClientManager;
-import edu.iastate.cs.theseguys.distributed.ServerManager;
-import edu.iastate.cs.theseguys.network.AncestorsOfRequest;
-import edu.iastate.cs.theseguys.network.MessageDatagram;
-import edu.iastate.cs.theseguys.network.NewMessageAnnouncement;
-import edu.iastate.cs.theseguys.network.ParentsOfRequest;
-import javafx.util.Pair;
+import java.util.Collections;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.atomic.AtomicLong;
+
 import org.apache.mina.core.session.IoSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,10 +12,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
-import java.util.Collections;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentLinkedDeque;
-import java.util.concurrent.atomic.AtomicLong;
+import com.google.common.collect.Iterables;
+
+import edu.iastate.cs.theseguys.database.MessageRecord;
+import edu.iastate.cs.theseguys.database.MessageRepository;
+import edu.iastate.cs.theseguys.database.QMessageRecord;
+import edu.iastate.cs.theseguys.distributed.ClientManager;
+import edu.iastate.cs.theseguys.distributed.ServerManager;
+import edu.iastate.cs.theseguys.eventbus.NewMessageEvent;
+import edu.iastate.cs.theseguys.network.AncestorsOfRequest;
+import edu.iastate.cs.theseguys.network.MessageDatagram;
+import edu.iastate.cs.theseguys.network.NewMessageAnnouncement;
+import edu.iastate.cs.theseguys.network.ParentsOfRequest;
+import javafx.util.Pair;
 
 @Component
 public class DatabaseManager {
@@ -153,7 +156,7 @@ public class DatabaseManager {
                         // Attach an AtomicLong to the pair to help track time in waiting queue
                         waitingOnResponse.push(new Pair<>(new AtomicLong(0), head));
                     }
-                    // TODO: Other cases? I don't know. Probably not. (╯°□°)╯︵ ┻━┻
+                    // TODO: Other cases? I don't know. Probably not.
 
                 }
             } else {
@@ -189,7 +192,7 @@ public class DatabaseManager {
                 newRecord.setFather(father);
                 newRecord.setMother(mother);
                 getRepository().save(newRecord);
-
+                applicationEventPublisher.publishEvent(new NewMessageEvent(this, newRecord));
 
                 // If the message originated from this client, notify other clients!
                 if (head.getKey() < 0L) {
