@@ -41,6 +41,7 @@ public class ClientManager extends AbstractIoConnectorManager {
         getIoHandler().addReceivedMessageHandler(LatestMessageResponse.class, latestMessageResponseHandler);
         getIoHandler().addSentMessageHandler(ParentsOfRequest.class, MessageHandler.NOOP);
         getIoHandler().addReceivedMessageHandler(ParentsOfResponse.class, parentsOfResponseHandler);
+        getIoHandler().addSentMessageHandler(PeerConnectionRequest.class, MessageHandler.NOOP);
 
         ((ManagedDemuxingIoHandler) getIoHandler()).setClientManager(this);
         ((ManagedDemuxingIoHandler) getIoHandler()).setServerManager(serverManager);
