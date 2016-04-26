@@ -29,6 +29,8 @@ public class ClientManager extends AbstractIoConnectorManager {
     private ParentsOfResponseHandler parentsOfResponseHandler;
     @Autowired
     private NewMessageAnnouncementHandler newMessageAnnouncementHandler;
+    @Autowired
+    private AncestorsOfResponseHandler ancestorsOfResponseHandler;
 
     public ClientManager() {
         super(new NioSocketConnector(), new ClientDemuxingIoHandler());
@@ -42,6 +44,8 @@ public class ClientManager extends AbstractIoConnectorManager {
         getIoHandler().addSentMessageHandler(ParentsOfRequest.class, MessageHandler.NOOP);
         getIoHandler().addReceivedMessageHandler(ParentsOfResponse.class, parentsOfResponseHandler);
         getIoHandler().addSentMessageHandler(PeerConnectionRequest.class, MessageHandler.NOOP);
+        getIoHandler().addSentMessageHandler(AncestorsOfRequest.class, MessageHandler.NOOP);
+        getIoHandler().addReceivedMessageHandler(AncestorsOfResponse.class, ancestorsOfResponseHandler);
 
         ((ManagedDemuxingIoHandler) getIoHandler()).setClientManager(this);
         ((ManagedDemuxingIoHandler) getIoHandler()).setServerManager(serverManager);

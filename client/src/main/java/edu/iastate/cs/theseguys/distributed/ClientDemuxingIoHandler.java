@@ -20,14 +20,12 @@ public class ClientDemuxingIoHandler extends ManagedDemuxingIoHandler {
     	
     	
         session.write(new LatestMessageRequest());
-        
 
         InetSocketAddress addr = (InetSocketAddress)getServerManager().getService().getLocalAddress();
         log.info("SENDING PEER CONNECTION REQUEST with port:"+addr.getPort()+" and sessionId: "+session.getId());
 
         session.write(new PeerConnectionRequest(addr.getPort(), session.getId()));
-        
-        
+
     }
 
 }

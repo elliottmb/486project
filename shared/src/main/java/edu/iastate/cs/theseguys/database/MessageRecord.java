@@ -135,4 +135,8 @@ public class MessageRecord {
     public MessageDatagram toDatagram() {
         return new MessageDatagram(this);
     }
+
+    public boolean isRoot() {
+        return getId().equals(new UUID(0, 0)) && getFather().getId().equals(getId()) && getMother().getId().equals(getId());
+    }
 }

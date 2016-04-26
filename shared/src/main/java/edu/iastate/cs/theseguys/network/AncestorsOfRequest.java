@@ -17,4 +17,11 @@ public class AncestorsOfRequest extends AbstractMessage {
     public List<MessageDatagram> getChildren() {
         return children;
     }
+
+    @Override
+    public String toString() {
+        return "AncestorsOfRequest{" +
+                "children=" + children +
+                '}';
+    }
 }

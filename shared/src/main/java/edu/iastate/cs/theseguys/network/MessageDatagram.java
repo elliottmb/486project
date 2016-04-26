@@ -4,6 +4,7 @@ import edu.iastate.cs.theseguys.database.MessageRecord;
 
 import java.io.Serializable;
 import java.sql.Timestamp;
+import java.util.Arrays;
 import java.util.UUID;
 
 public class MessageDatagram implements Serializable {
@@ -100,5 +101,34 @@ public class MessageDatagram implements Serializable {
 
     public byte[] getSignature() {
         return signature;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        MessageDatagram that = (MessageDatagram) o;
+
+        if (!id.equals(that.id)) return false;
+        if (!userId.equals(that.userId)) return false;
+        if (!fatherId.equals(that.fatherId)) return false;
+        if (!motherId.equals(that.motherId)) return false;
+        if (!messageBody.equals(that.messageBody)) return false;
+        if (!timestamp.equals(that.timestamp)) return false;
+        return Arrays.equals(signature, that.signature);
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = id.hashCode();
+        result = 31 * result + userId.hashCode();
+        result = 31 * result + fatherId.hashCode();
+        result = 31 * result + motherId.hashCode();
+        result = 31 * result + messageBody.hashCode();
+        result = 31 * result + timestamp.hashCode();
+        result = 31 * result + Arrays.hashCode(signature);
+        return result;
     }
 }
