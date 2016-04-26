@@ -139,7 +139,7 @@ public class DatabaseManager {
             }
         }
 
-        while (!toProcess.isEmpty()) {
+        if (!toProcess.isEmpty()) {
             Pair<Long, MessageDatagram> head = toProcess.pop();
 
             MessageDatagram headDatagram = head.getValue();
@@ -264,7 +264,7 @@ public class DatabaseManager {
             while (running) {
                 processQueue();
                 try {
-                    Thread.sleep(250);
+                    Thread.sleep(1000);
                 } catch (InterruptedException e) {
                     running = false;
                 }
