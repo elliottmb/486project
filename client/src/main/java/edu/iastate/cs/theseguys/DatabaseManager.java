@@ -1,19 +1,6 @@
 package edu.iastate.cs.theseguys;
 
-import java.util.Collections;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentLinkedDeque;
-import java.util.concurrent.atomic.AtomicLong;
-
-import org.apache.mina.core.session.IoSession;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.stereotype.Component;
-
 import com.google.common.collect.Iterables;
-
 import edu.iastate.cs.theseguys.database.MessageRecord;
 import edu.iastate.cs.theseguys.database.MessageRepository;
 import edu.iastate.cs.theseguys.database.QMessageRecord;
@@ -25,6 +12,17 @@ import edu.iastate.cs.theseguys.network.MessageDatagram;
 import edu.iastate.cs.theseguys.network.NewMessageAnnouncement;
 import edu.iastate.cs.theseguys.network.ParentsOfRequest;
 import javafx.util.Pair;
+import org.apache.mina.core.session.IoSession;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Component;
+
+import java.util.Collections;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.atomic.AtomicLong;
 
 @Component
 public class DatabaseManager {
@@ -111,6 +109,7 @@ public class DatabaseManager {
                 if (exists(headDatagram.getFatherId()) && exists(headDatagram.getMotherId())) {
                     log.info("We have the parents for " + headDatagram.getId());
                     // If we do, move this guy to the ready queue
+                    log.info("Moving " + headDatagram.getId() + " to ready queue from to process");
                     ready.add(head);
                 } else {
                     // Make sure father isn't processed or in the ready queue already
@@ -152,9 +151,9 @@ public class DatabaseManager {
                                 clientManager.write(new ParentsOfRequest(Collections.singletonList(headDatagram)));
                             }
                         }
-                        log.info("Requested parents, moving to the waiting queue, " + headDatagram.getId());
+                        log.info("Requested parents for " + headDatagram.getId() + ", moving to the waiting queue");
                         // Attach an AtomicLong to the pair to help track time in waiting queue
-                        waitingOnResponse.push(new Pair<>(new AtomicLong(0), head));
+                        waitingOnResponse.add(new Pair<>(new AtomicLong(0), head));
                     }
                     // TODO: Other cases? I don't know. Probably not.
 
@@ -168,12 +167,14 @@ public class DatabaseManager {
             MessageDatagram headDatagram = head.getValue().getValue();
 
             if (exists(headDatagram.getFatherId()) && exists(headDatagram.getMotherId())) {
-                ready.push(head.getValue());
+                log.info("Moving " + head.getValue().getValue().getId() + " to ready queue from waiting");
+                ready.add(head.getValue());
             } else {
                 long waited = head.getKey().getAndIncrement();
 
                 //TODO: Handle the waiting period
-                waitingOnResponse.push(head);
+                log.info("Readding " + head.getValue().getValue().getId() + " to waiting");
+                waitingOnResponse.add(head);
             }
 
         }
@@ -188,6 +189,8 @@ public class DatabaseManager {
                 log.info("We have lost the mother or father of " + datagram.getId());
                 toProcess.add(head);
             } else {
+                log.info("Saving record for " + datagram.getId());
+
                 MessageRecord newRecord = new MessageRecord(datagram.getId(), datagram.getUserId(), datagram.getMessageBody(), datagram.getTimestamp(), datagram.getSignature());
                 newRecord.setFather(father);
                 newRecord.setMother(mother);
@@ -198,7 +201,6 @@ public class DatabaseManager {
                 if (head.getKey() < 0L) {
                     serverManager.write(new NewMessageAnnouncement(datagram));
                 }
-                log.info("Saving record for " + datagram.getId());
             }
         }
     }
@@ -251,7 +253,7 @@ public class DatabaseManager {
             while (running) {
                 processQueue();
                 try {
-                    Thread.sleep(1000);
+                    Thread.sleep(250);
                 } catch (InterruptedException e) {
                     running = false;
                 }
