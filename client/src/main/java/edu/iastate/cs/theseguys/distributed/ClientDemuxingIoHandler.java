@@ -15,7 +15,7 @@ public class ClientDemuxingIoHandler extends ManagedDemuxingIoHandler {
     	
     	
         session.write(new LatestMessageRequest());
-        session.write(new PeerConnectionRequest(((InetSocketAddress)getServerManager().getService().getLocalAddress()).getPort()));
+       // session.write(new PeerConnectionRequest(((InetSocketAddress)getServerManager().getService().getLocalAddress()).getPort()));
     }
 
 }

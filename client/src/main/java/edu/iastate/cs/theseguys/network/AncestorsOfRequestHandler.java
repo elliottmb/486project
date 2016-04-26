@@ -31,7 +31,7 @@ public class AncestorsOfRequestHandler implements MessageHandler<AncestorsOfRequ
         while (!temp.isEmpty()) {
 
             MessageDatagram messageDatagram = temp.pollFirst();
-            log.info("looking for parents of " + messageDatagram.getId());
+            log.info("looking for parents of " + messageDatagram.getId() + "( " + messageDatagram.getMotherId() + ", " + messageDatagram.getFatherId() + " )");
 
             MessageRecord fatherReoord = databaseManager.getRepository().findOne(messageDatagram.getFatherId());
             MessageRecord motherReoord = databaseManager.getRepository().findOne(messageDatagram.getMotherId());

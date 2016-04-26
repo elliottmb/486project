@@ -193,13 +193,17 @@ public class DatabaseManager {
 
                         if (session != null) {
                             if (waitingHasChild) {
-                                session.write(new AncestorsOfRequest(Collections.singletonList(headDatagram)));
+                                session.write(new ParentsOfRequest(Collections.singletonList(headDatagram)));
+                                // TODO: Fix AncestorsOfRequestHandler to not loop foreversss...
+                                //session.write(new AncestorsOfRequest(Collections.singletonList(headDatagram)));
                             } else {
                                 session.write(new ParentsOfRequest(Collections.singletonList(headDatagram)));
                             }
                         } else {
                             if (waitingHasChild) {
-                                clientManager.write(new AncestorsOfRequest(Collections.singletonList(headDatagram)));
+                                clientManager.write(new ParentsOfRequest(Collections.singletonList(headDatagram)));
+                                // TODO: Fix AncestorsOfRequestHandler to not loop foreversss...
+                                //clientManager.write(new AncestorsOfRequest(Collections.singletonList(headDatagram)));
                             } else {
                                 log.warn("Connection with source for " + headDatagram.getId() + " has been lost, messaging all other clients");
                                 clientManager.write(new ParentsOfRequest(Collections.singletonList(headDatagram)));
