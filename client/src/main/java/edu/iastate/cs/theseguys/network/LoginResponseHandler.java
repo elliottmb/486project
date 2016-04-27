@@ -27,6 +27,8 @@ public class LoginResponseHandler implements MessageHandler<LoginResponse> {
         if (message.isSuccess()) {
             authorityManager.setUserId(message.getAssignedId());
             authorityManager.setPublicKey(message.getPublicKey());
+
+            session.write(new PeerListRequest());
         }
 
         applicationEventPublisher.publishEvent(new LoginEvent(this, message.isSuccess()));

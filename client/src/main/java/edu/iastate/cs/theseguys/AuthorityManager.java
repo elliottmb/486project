@@ -1,5 +1,6 @@
 package edu.iastate.cs.theseguys;
 
+import edu.iastate.cs.theseguys.model.Peer;
 import edu.iastate.cs.theseguys.network.*;
 import edu.iastate.cs.theseguys.security.ClientSecurity;
 import org.apache.mina.filter.codec.ProtocolCodecFilter;
@@ -15,6 +16,8 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.security.PublicKey;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.UUID;
 
 @Component
@@ -30,10 +33,16 @@ public class AuthorityManager extends AbstractIoConnectorManager {
     @Autowired
     private RegisterResponseHandler registerResponseHandler;
     @Autowired
+    private PeerListResponseHandler peerListResponseHandler;
+    @Autowired
     private ClientSecurity clientSecurity;
+
+    private List<Peer> knownPeers;
 
     public AuthorityManager() {
         super(new NioSocketConnector(), new DemuxingIoHandler());
+
+        knownPeers = new LinkedList<>();
     }
 
     public synchronized boolean isLoggedIn() {
@@ -48,6 +57,8 @@ public class AuthorityManager extends AbstractIoConnectorManager {
         getIoHandler().addReceivedMessageHandler(RegisterResponse.class, registerResponseHandler);
         getIoHandler().addSentMessageHandler(VerificationRequest.class, MessageHandler.NOOP);
         getIoHandler().addReceivedMessageHandler(VerificationResponse.class, verificationResponseHandler);
+        getIoHandler().addSentMessageHandler(PeerListRequest.class, MessageHandler.NOOP);
+        getIoHandler().addReceivedMessageHandler(PeerListResponse.class, peerListResponseHandler);
 
         getService().getFilterChain().addLast("logger", new LoggingFilter());
         getService().getFilterChain().addLast("codec", new ProtocolCodecFilter(new ObjectSerializationCodecFactory()));
@@ -76,5 +87,13 @@ public class AuthorityManager extends AbstractIoConnectorManager {
 
     public synchronized void setPublicKey(PublicKey publicKey) {
         this.publicKey = publicKey;
+    }
+
+    public synchronized List<Peer> getKnownPeers() {
+        return knownPeers;
+    }
+
+    public synchronized void setKnownPeers(List<Peer> peers) {
+        knownPeers = peers;
     }
 }

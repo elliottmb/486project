@@ -2,9 +2,9 @@ package edu.iastate.cs.theseguys.model;
 
 import java.io.Serializable;
 
-public class Peer implements Serializable{
-	private static final long serialVersionUID = 8990653320527676216L;
-	private String ip;
+public class Peer implements Serializable {
+    private static final long serialVersionUID = 8990653320527676216L;
+    private String ip;
     private int port;
 
     public Peer(String ip, int port) {
@@ -16,16 +16,23 @@ public class Peer implements Serializable{
         return port;
     }
 
-    public String getIp() {
-        return ip;
-    }
-
     public void setPort(int port) {
         this.port = port;
+    }
+
+    public String getIp() {
+        return ip;
     }
 
     public void setIp(String ip) {
         this.ip = ip;
     }
 
+    @Override
+    public String toString() {
+        return "Peer{" +
+                "ip='" + ip + '\'' +
+                ", port=" + port +
+                '}';
+    }
 }

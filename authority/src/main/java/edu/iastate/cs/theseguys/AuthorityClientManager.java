@@ -93,7 +93,7 @@ public class AuthorityClientManager extends AbstractIoAcceptorManager {
         return activeSessions.entrySet()
                 .stream()
                 .map(
-                        e -> new Peer(e.getKey().getRemoteAddress().toString(), e.getValue().getValue())
+                        e -> new Peer(((InetSocketAddress) e.getKey().getRemoteAddress()).getAddress().getHostAddress(), e.getValue().getValue())
                 )
                 .collect(Collectors.toList());
     }

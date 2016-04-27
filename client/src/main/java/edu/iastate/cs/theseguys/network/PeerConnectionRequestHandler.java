@@ -23,7 +23,7 @@ public class PeerConnectionRequestHandler implements MessageHandler<PeerConnecti
     public void handleMessage(IoSession session, PeerConnectionRequest request) throws Exception {
         InetSocketAddress sessionAddress = (InetSocketAddress) session.getRemoteAddress();
 
-        InetSocketAddress sessionServerAddress = new InetSocketAddress(sessionAddress.getHostName(), request.getServerPort());
+        InetSocketAddress sessionServerAddress = new InetSocketAddress(sessionAddress.getAddress().getHostAddress(), request.getServerPort());
 
         log.info("Received " + request + " from " + sessionAddress);
 
