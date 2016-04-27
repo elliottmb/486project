@@ -24,6 +24,8 @@ public class PeerListResponseHandler implements MessageHandler<PeerListResponse>
 
         log.info("Received " + response);
 
+        clientManager.setKnownPeers(response.getClients());
+
     }
 
 }

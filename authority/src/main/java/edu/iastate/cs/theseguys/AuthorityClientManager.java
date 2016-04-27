@@ -89,6 +89,19 @@ public class AuthorityClientManager extends AbstractIoAcceptorManager {
         return userId.equals(activeSessions.get(session).getKey());
     }
 
+    public List<Peer> getActivePeers(IoSession excluding) {
+        return activeSessions.entrySet()
+                .stream()
+                .filter(
+                        e -> !e.getKey().equals(excluding)
+                )
+                .map(
+                        e -> new Peer(((InetSocketAddress) e.getKey().getRemoteAddress()).getAddress().getHostAddress(), e.getValue().getValue())
+                )
+                .collect(Collectors.toList());
+    }
+
+
     public List<Peer> getActivePeers() {
         return activeSessions.entrySet()
                 .stream()

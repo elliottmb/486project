@@ -18,7 +18,7 @@ public class PeerListRequestHandler implements MessageHandler<PeerListRequest> {
     @Override
     public void handleMessage(IoSession session, PeerListRequest request) throws Exception {
 
-        List<Peer> users = manager.getActivePeers();
+        List<Peer> users = manager.getActivePeers(session);
 
         session.write(new PeerListResponse(users));
     }

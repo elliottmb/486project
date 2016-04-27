@@ -1,6 +1,7 @@
 package edu.iastate.cs.theseguys.distributed;
 
 import edu.iastate.cs.theseguys.AbstractIoConnectorManager;
+import edu.iastate.cs.theseguys.model.Peer;
 import edu.iastate.cs.theseguys.network.*;
 import org.apache.mina.filter.codec.ProtocolCodecFilter;
 import org.apache.mina.filter.codec.serialization.ObjectSerializationCodecFactory;
@@ -13,6 +14,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
+import java.net.InetSocketAddress;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 public class ClientManager extends AbstractIoConnectorManager {
@@ -32,8 +37,43 @@ public class ClientManager extends AbstractIoConnectorManager {
     @Autowired
     private AncestorsOfResponseHandler ancestorsOfResponseHandler;
 
+
+    private List<Peer> knownPeers;
+
+
     public ClientManager() {
         super(new NioSocketConnector(), new ClientDemuxingIoHandler());
+
+        knownPeers = new LinkedList<>();
+    }
+
+    public synchronized List<Peer> getKnownPeers() {
+        return knownPeers;
+    }
+
+    public synchronized void setKnownPeers(List<Peer> peers) {
+        knownPeers = peers;
+
+        List<InetSocketAddress> connectionAddresses = getService().getManagedSessions()
+                .entrySet()
+                .stream()
+                .map(
+                        e -> (InetSocketAddress) e.getValue().getRemoteAddress()
+                )
+                .collect(Collectors.toList());
+
+        List<Peer> notCurrentlyConnected = knownPeers.stream()
+                .filter(
+                        e -> connectionAddresses.stream().noneMatch(c -> c.getAddress().getHostAddress().equals(e.getIp()) && c.getPort() == e.getPort())
+                )
+                .collect(Collectors.toList());
+
+        log.info(knownPeers.toString());
+        log.info(notCurrentlyConnected.toString());
+
+        for (Peer peer : notCurrentlyConnected) {
+            getService().connect(new InetSocketAddress(peer.getIp(), peer.getPort()));
+        }
     }
 
     @PostConstruct
