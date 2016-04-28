@@ -3,7 +3,6 @@ package edu.iastate.cs.theseguys;
 import edu.iastate.cs.theseguys.network.LogoutRequest;
 import edu.iastate.cs.theseguys.network.LogoutResponse;
 
-import org.apache.mina.core.future.CloseFuture;
 import org.apache.mina.core.session.IoSession;
 import org.apache.mina.handler.demux.MessageHandler;
 import org.slf4j.Logger;
