@@ -7,7 +7,6 @@ import edu.iastate.cs.theseguys.database.QMessageRecord;
 import edu.iastate.cs.theseguys.distributed.ClientManager;
 import edu.iastate.cs.theseguys.distributed.ServerManager;
 import edu.iastate.cs.theseguys.eventbus.NewMessageEvent;
-import edu.iastate.cs.theseguys.network.AncestorsOfRequest;
 import edu.iastate.cs.theseguys.network.MessageDatagram;
 import edu.iastate.cs.theseguys.network.NewMessageAnnouncement;
 import edu.iastate.cs.theseguys.network.ParentsOfRequest;
@@ -20,6 +19,8 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
 import java.util.Collections;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -38,14 +39,14 @@ public class DatabaseManager {
     private ServerManager serverManager;
     private ConcurrentLinkedDeque<Pair<Long, MessageDatagram>> toProcess;
     private CopyOnWriteArrayList<Pair<AtomicLong, Pair<Long, MessageDatagram>>> waitingOnResponse;
-    private CopyOnWriteArrayList<Pair<Long, MessageDatagram>> ready;
+    private LinkedHashSet<Pair<Long, MessageDatagram>> ready;
     private Thread processThread;
     private QueueProcessor queueProcessor;
 
     public DatabaseManager() {
         toProcess = new ConcurrentLinkedDeque<>();
         waitingOnResponse = new CopyOnWriteArrayList<>();
-        ready = new CopyOnWriteArrayList<>();
+        ready = new LinkedHashSet<>();
 
 
         queueProcessor = new QueueProcessor();
@@ -91,23 +92,30 @@ public class DatabaseManager {
 
     public synchronized void processQueue() {
 
-        while (!ready.isEmpty()) {
-            Pair<Long, MessageDatagram> head = ready.get(0);
-            ready.remove(0);
+        Iterator<Pair<Long, MessageDatagram>> readyIterator = ready.iterator();
+        while (readyIterator.hasNext()) {
+            Pair<Long, MessageDatagram> head = readyIterator.next();
+            readyIterator.remove();
             MessageDatagram datagram = head.getValue();
             MessageRecord father = getRepository().findOne(datagram.getFatherId());
             MessageRecord mother = getRepository().findOne(datagram.getMotherId());
 
-            log.info("Ready queue processing of " + datagram.getId());
+            log.info("Ready queue processing of " + datagram);
             log.info("Father result: " + father);
             log.info("Mother result: " + mother);
 
+            // Check one last time that we don't already have this message
+            if (getRepository().exists(datagram.getId())) {
+                log.info("We already saved " + datagram);
+                continue;
+            }
+
             // Be sure!
             if (father == null || mother == null) {
-                log.info("We have lost the mother or father of " + datagram.getId());
+                log.info("We have lost the mother or father of " + datagram);
                 toProcess.add(head);
             } else {
-                log.info("Saving record for " + datagram.getId());
+                log.info("Saving record for " + datagram);
 
                 MessageRecord newRecord = new MessageRecord(datagram.getId(), datagram.getUserId(), datagram.getMessageBody(), datagram.getTimestamp(), datagram.getSignature());
                 newRecord.setFather(father);
