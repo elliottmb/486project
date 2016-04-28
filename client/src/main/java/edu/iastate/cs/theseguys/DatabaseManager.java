@@ -284,7 +284,7 @@ public class DatabaseManager {
             while (running) {
                 processQueue();
                 try {
-                    Thread.sleep(1000);
+                    Thread.sleep(200);
                 } catch (InterruptedException e) {
                     running = false;
                 }
