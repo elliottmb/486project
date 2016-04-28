@@ -4,8 +4,6 @@ import edu.iastate.cs.theseguys.AuthorityManager;
 import edu.iastate.cs.theseguys.distributed.ClientManager;
 import edu.iastate.cs.theseguys.distributed.ServerManager;
 import edu.iastate.cs.theseguys.eventbus.LogoutEvent;
-
-import org.apache.mina.core.future.CloseFuture;
 import org.apache.mina.core.session.IoSession;
 import org.apache.mina.handler.demux.MessageHandler;
 import org.slf4j.Logger;
@@ -17,45 +15,42 @@ import org.springframework.stereotype.Component;
 @Component
 public class LogoutResponseHandler implements MessageHandler<LogoutResponse> {
     private static final Logger log = LoggerFactory.getLogger(LogoutResponseHandler.class);
-    
+
     @Autowired
     AuthorityManager authorityManager;
     @Autowired
     ClientManager clientManager;
     @Autowired
     ServerManager serverManager;
-    
+
 
     @Autowired
     ApplicationEventPublisher applicationEventPublisher;
 
     @Override
-    public void handleMessage(IoSession session, LogoutResponse message) throws Exception {
-        log.info("Received " + message.toString());
+    public void handleMessage(IoSession session, LogoutResponse response) throws Exception {
+        log.info("Received " + response.toString());
 
-        if (message.isConfirmed()) {
-        	
-            CloseFuture closeFuture = session.closeOnFlush();
-            closeFuture.awaitUninterruptibly();
-            
+        if (response.isConfirmed()) {
+
             authorityManager.setPublicKey(null);
             authorityManager.setUserId(null);
-            
+
             clientManager.getService().getManagedSessions().forEach(
                     (e, b) -> {
                         b.closeOnFlush().awaitUninterruptibly();
                     }
             );
-            
+
             serverManager.getService().getManagedSessions().forEach(
                     (e, b) -> {
                         b.closeOnFlush().awaitUninterruptibly();
                     }
             );
-            
+
         }
 
-        applicationEventPublisher.publishEvent(new LogoutEvent(this, message.isConfirmed()));
+        applicationEventPublisher.publishEvent(new LogoutEvent(this, response.isConfirmed()));
     }
 }
 
