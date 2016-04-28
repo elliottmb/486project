@@ -24,8 +24,7 @@ public class LogoutRequestHandler implements MessageHandler<LogoutRequest> {
     	
     	manager.removeUserSession(session);
     	session.write(new LogoutResponse(true));
-    	CloseFuture closeFuture = session.closeOnFlush();
-    	closeFuture.awaitUninterruptibly();
+
 
         log.info("CONNECTED CLIENTS: " + manager.getConnectedClients());
     }

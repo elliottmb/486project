@@ -7,6 +7,7 @@ import edu.iastate.cs.theseguys.distributed.ServerManager;
 import edu.iastate.cs.theseguys.eventbus.AuthorityConnectedEvent;
 import edu.iastate.cs.theseguys.eventbus.AuthorityConnectionFailedEvent;
 import edu.iastate.cs.theseguys.network.LoginRequest;
+import edu.iastate.cs.theseguys.network.LogoutRequest;
 import edu.iastate.cs.theseguys.network.MessageDatagram;
 import edu.iastate.cs.theseguys.network.RegisterRequest;
 import edu.iastate.cs.theseguys.network.VerificationRequest;
@@ -195,6 +196,11 @@ public class Client implements CommandLineRunner {
         String s;
         Pair<MessageRecord, MessageRecord> idealParentRecords;
         while ((s = in.readLine()) != null) {
+        	if(s.toLowerCase().equals(":dc")) {
+        		authorityManager.write(new LogoutRequest());
+        		System.out.println("Logged off...");
+        	}
+        	
             if (":q".equalsIgnoreCase(s))
                 break;
 
@@ -213,7 +219,7 @@ public class Client implements CommandLineRunner {
             } else {
                 if (s.toLowerCase().startsWith(":r ")) {
                     if (authorityManager.isLoggedIn()) {
-                        System.out.println("Please log out first using :loff");
+                        System.out.println("Please log out first using :dc");
                     } else {
                         String[] arguments = s.split(" ");
                         if (arguments.length == 3) {
@@ -260,7 +266,7 @@ public class Client implements CommandLineRunner {
             }
             System.out.print("> ");
         }
-
+        
         Pair<MessageRecord, MessageRecord> possibleParents = databaseManager.getIdealParentRecords();
 
         log.info("---- Possible parents for a new message are:");
@@ -286,7 +292,7 @@ public class Client implements CommandLineRunner {
         log.info("Mother: " + youngest.getMother().toString());
         log.info("Left Children: " + youngest.getLeftChildren().toString());
         log.info("Right Children: " + youngest.getRightChildren().toString());
-
+        
         dispose();
     }
 
