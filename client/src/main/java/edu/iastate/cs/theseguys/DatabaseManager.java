@@ -130,6 +130,16 @@ public class DatabaseManager {
             }
         }
 
+        // Check if we've lost connection to producers
+        if (clientManager != null && clientManager.getService().getManagedSessionCount() == 0) {
+            // If we have, we should purge the querying queues
+            if (toProcess.size() > 0 || waitingOnResponse.size() > 0) {
+                log.info("Preparing to purge processing queues due to complete connection loss.");
+            }
+            toProcess.clear();
+            waitingOnResponse.clear();
+        }
+
         if (!waitingOnResponse.isEmpty()) {
             Pair<AtomicLong, Pair<Long, MessageDatagram>> head = waitingOnResponse.get(0);
             waitingOnResponse.remove(0);
@@ -199,7 +209,7 @@ public class DatabaseManager {
                         log.info("We don't have both parents of " + headDatagram.getId());
                         IoSession session = clientManager.getSession(head.getKey());
 
-                        if (session != null) {
+                        if (session != null && session.isConnected()) {
                             if (waitingHasChild) {
                                 session.write(new ParentsOfRequest(Collections.singletonList(headDatagram)));
                                 // TODO: Fix AncestorsOfRequestHandler to not loop foreversss...
@@ -232,7 +242,6 @@ public class DatabaseManager {
                 log.info("We already have " + headDatagram.getId() + ", removing from queue");
             }
         }
-
 
     }
 
