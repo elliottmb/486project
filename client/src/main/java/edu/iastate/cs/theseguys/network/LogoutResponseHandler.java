@@ -1,7 +1,8 @@
 package edu.iastate.cs.theseguys.network;
 
 import edu.iastate.cs.theseguys.AuthorityManager;
-import edu.iastate.cs.theseguys.eventbus.LoginEvent;
+import edu.iastate.cs.theseguys.distributed.ClientManager;
+import edu.iastate.cs.theseguys.distributed.ServerManager;
 import edu.iastate.cs.theseguys.eventbus.LogoutEvent;
 
 import org.apache.mina.core.future.CloseFuture;
@@ -19,6 +20,11 @@ public class LogoutResponseHandler implements MessageHandler<LogoutResponse> {
     
     @Autowired
     AuthorityManager authorityManager;
+    @Autowired
+    ClientManager clientManager;
+    @Autowired
+    ServerManager serverManager;
+    
 
     @Autowired
     ApplicationEventPublisher applicationEventPublisher;
@@ -35,8 +41,18 @@ public class LogoutResponseHandler implements MessageHandler<LogoutResponse> {
             authorityManager.setPublicKey(null);
             authorityManager.setUserId(null);
             
-            //somewhere we need to disconnect from all the other peers. not sure if should be done right here,
-            //or by the LogoutEvent below?
+            clientManager.getService().getManagedSessions().forEach(
+                    (e, b) -> {
+                        b.closeOnFlush().awaitUninterruptibly();
+                    }
+            );
+            
+            serverManager.getService().getManagedSessions().forEach(
+                    (e, b) -> {
+                        b.closeOnFlush().awaitUninterruptibly();
+                    }
+            );
+            
         }
 
         applicationEventPublisher.publishEvent(new LogoutEvent(this, message.isConfirmed()));
