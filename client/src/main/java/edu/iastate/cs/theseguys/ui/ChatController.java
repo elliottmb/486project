@@ -106,7 +106,7 @@ public class ChatController implements ApplicationListener<ApplicationEvent> {
         		Platform.runLater(
                         () -> {
                                 try {
-                                    changeScreens("/fxml/chat.fxml");
+                                    changeScreens("/fxml/login.fxml");
                                 } catch (IOException e) {
                                     e.printStackTrace();
                                 }
