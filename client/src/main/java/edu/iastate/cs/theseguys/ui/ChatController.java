@@ -5,25 +5,31 @@ import edu.iastate.cs.theseguys.SpringFXMLLoader;
 import edu.iastate.cs.theseguys.database.MessageRecord;
 import edu.iastate.cs.theseguys.eventbus.MessageEvent;
 import edu.iastate.cs.theseguys.eventbus.NewMessageEvent;
+import edu.iastate.cs.theseguys.network.LogoutRequest;
 import edu.iastate.cs.theseguys.network.MessageDatagram;
 import edu.iastate.cs.theseguys.network.VerificationRequest;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.stage.Stage;
 import javafx.util.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.UUID;
 
 @Component
-public class ChatController implements ApplicationListener<MessageEvent> {
+public class ChatController implements ApplicationListener<ApplicationEvent> {
 
     @FXML
     private TextArea chat;
@@ -36,6 +42,9 @@ public class ChatController implements ApplicationListener<MessageEvent> {
 
     @FXML
     private Button submit;
+    
+    @FXML
+    private Button logout;
     @Autowired
     private SpringFXMLLoader springFXMLLoader;
     @Autowired
@@ -64,9 +73,31 @@ public class ChatController implements ApplicationListener<MessageEvent> {
         }
         input.setText("");
     }
+    
+    @FXML
+    protected void logout(ActionEvent event){
+    	client.getAuthorityManager().write(new LogoutRequest());
+    	Platform.runLater(
+                () -> {
+                        try {
+                            changeScreens("/fxml/chat.fxml");
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                }
+        );
+    }
+    
+    private void changeScreens(String screen) throws IOException {
+        Stage stage = (Stage) chat.getScene().getWindow();
+        Parent root = springFXMLLoader.load(screen);
+        Scene scene = new Scene(root);
+        stage.setScene(scene);
+        stage.show();
+    }
 
     @Override
-    public void onApplicationEvent(MessageEvent event) {
+    public void onApplicationEvent(ApplicationEvent event) {
         if (event instanceof NewMessageEvent) {
 
             final NewMessageEvent newMessageEvent = (NewMessageEvent) event;
