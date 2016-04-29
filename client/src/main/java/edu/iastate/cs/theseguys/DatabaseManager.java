@@ -21,7 +21,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedDeque;
-import java.util.concurrent.atomic.AtomicLong;
 
 @Component
 public class DatabaseManager {
@@ -35,7 +34,7 @@ public class DatabaseManager {
     @Autowired
     private ServerManager serverManager;
     private ConcurrentLinkedDeque<Pair<Long, MessageDatagram>> toProcess;
-    private LinkedHashMap<Pair<Long, MessageDatagram>, AtomicLong> waitingOnResponse;
+    private LinkedHashMap<Pair<Long, MessageDatagram>, Long> waitingOnResponse;
     private LinkedHashSet<Pair<Long, MessageDatagram>> ready;
     private Thread processThread;
     private QueueProcessor queueProcessor;
@@ -130,10 +129,10 @@ public class DatabaseManager {
         }
 
         if (waitingOnResponse.size() > 0) {
-            Iterator<Map.Entry<Pair<Long, MessageDatagram>, AtomicLong>> waitingIterator = waitingOnResponse.entrySet().iterator();
+            Iterator<Map.Entry<Pair<Long, MessageDatagram>, Long>> waitingIterator = waitingOnResponse.entrySet().iterator();
 
             while (waitingIterator.hasNext()) {
-                Map.Entry<Pair<Long, MessageDatagram>, AtomicLong> head = waitingIterator.next();
+                Map.Entry<Pair<Long, MessageDatagram>, Long> head = waitingIterator.next();
                 MessageDatagram headDatagram = head.getKey().getValue();
 
                 boolean readyHasFather = ready
@@ -154,10 +153,17 @@ public class DatabaseManager {
 
                     waitingIterator.remove();
                 } else {
-                    long waited = head.getValue().getAndIncrement();
+                    long waited = head.getValue();
 
-                    //TODO: Handle the waiting period
-                    log.info("waitingQueue: Leaving " + headDatagram.getId() + " in waiting queue");
+                    if (System.currentTimeMillis() - waited > 30000) {
+                        log.info("waitingQueue: Waited too long, moving " + headDatagram.getId() + " back to toProcess");
+                        toProcess.addLast(head.getKey());
+                        waitingIterator.remove();
+                    } else {
+
+                        //TODO: Handle the waiting period
+                        log.info("waitingQueue: Leaving " + headDatagram.getId() + " in waiting queue");
+                    }
                 }
             }
         }
@@ -249,7 +255,7 @@ public class DatabaseManager {
 
 
                             // Attach an AtomicLong to the pair to help track time in waiting queue
-                            waitingOnResponse.put(head, new AtomicLong(0));
+                            waitingOnResponse.put(head, System.currentTimeMillis());
                         }
                     }
                     // TODO: Other cases? I don't know. Probably not.

@@ -4,6 +4,8 @@ import org.springframework.context.ApplicationEvent;
 
 
 public abstract class UserSessionEvent extends ApplicationEvent {
+    private static final long serialVersionUID = -1917186373047532040L;
+
     /**
      * Create a new ApplicationEvent.
      *
