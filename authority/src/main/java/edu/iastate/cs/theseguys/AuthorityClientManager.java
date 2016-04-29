@@ -39,6 +39,9 @@ public class AuthorityClientManager extends AbstractIoAcceptorManager {
     private PeerListRequestHandler peerListRequestHandler;
     @Autowired
     private UserListRequestHandler userListRequestHandler;
+    @Autowired
+    private LogoutRequestHandler logoutRequestHandler;
+    
     // Map of IoSession to Authorized User ID and Listening Port
     private ConcurrentMap<IoSession, Pair<UUID, Integer>> activeSessions;
     @Autowired
@@ -64,13 +67,14 @@ public class AuthorityClientManager extends AbstractIoAcceptorManager {
         getIoHandler().addReceivedMessageHandler(PeerListRequest.class, peerListRequestHandler);
         getIoHandler().addReceivedMessageHandler(VerificationRequest.class, verificationRequestHandler);
         getIoHandler().addReceivedMessageHandler(UserListRequest.class, userListRequestHandler);
+        getIoHandler().addReceivedMessageHandler(LogoutRequest.class, logoutRequestHandler);
 
         getIoHandler().addSentMessageHandler(RegisterResponse.class, MessageHandler.NOOP);
         getIoHandler().addSentMessageHandler(PeerListResponse.class, MessageHandler.NOOP);
         getIoHandler().addSentMessageHandler(LoginResponse.class, MessageHandler.NOOP);
         getIoHandler().addSentMessageHandler(VerificationResponse.class, MessageHandler.NOOP);
         getIoHandler().addSentMessageHandler(UserListResponse.class, MessageHandler.NOOP);
-
+        getIoHandler().addSentMessageHandler(LogoutResponse.class, MessageHandler.NOOP);
 
         getService().getFilterChain().addLast("logger", new LoggingFilter());
         getService().getFilterChain().addLast("codec", new ProtocolCodecFilter(new ObjectSerializationCodecFactory()));

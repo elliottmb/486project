@@ -6,10 +6,7 @@ import edu.iastate.cs.theseguys.distributed.ClientManager;
 import edu.iastate.cs.theseguys.distributed.ServerManager;
 import edu.iastate.cs.theseguys.eventbus.AuthorityConnectedEvent;
 import edu.iastate.cs.theseguys.eventbus.AuthorityConnectionFailedEvent;
-import edu.iastate.cs.theseguys.network.LoginRequest;
-import edu.iastate.cs.theseguys.network.MessageDatagram;
-import edu.iastate.cs.theseguys.network.RegisterRequest;
-import edu.iastate.cs.theseguys.network.VerificationRequest;
+import edu.iastate.cs.theseguys.network.*;
 import javafx.application.Platform;
 import javafx.embed.swing.JFXPanel;
 import javafx.scene.Parent;
@@ -157,8 +154,7 @@ public class Client implements CommandLineRunner {
         }
 
         serverManager.run();
-        
- 
+
 
         MessageRecord oldest = databaseManager.getRepository().findFirstByOrderByTimestampAsc();
 
@@ -213,7 +209,7 @@ public class Client implements CommandLineRunner {
             } else {
                 if (s.toLowerCase().startsWith(":r ")) {
                     if (authorityManager.isLoggedIn()) {
-                        System.out.println("Please log out first using :loff");
+                        System.out.println("Please log out first using :dc");
                     } else {
                         String[] arguments = s.split(" ");
                         if (arguments.length == 3) {
@@ -233,24 +229,29 @@ public class Client implements CommandLineRunner {
                                 System.out.println("Expecting two arguments, got " + (arguments.length - 1));
                             }
                         } else {
-                            if (":l".equalsIgnoreCase(s)) {
+                            if (":lc".equalsIgnoreCase(s)) {
                                 System.out.println(clientManager.getService().getManagedSessions());
+                                System.out.println(serverManager.getService().getManagedSessions());
                             } else {
+                                if (s.toLowerCase().equals(":dc")) {
+                                    authorityManager.write(new LogoutRequest());
+                                    System.out.println("Logged off...");
+                                } else {
+                                    idealParentRecords = databaseManager.getIdealParentRecords();
 
-                                idealParentRecords = databaseManager.getIdealParentRecords();
+                                    System.out.println("We are sending the message off to the central authority!");
+                                    MessageDatagram test = new MessageDatagram(
+                                            UUID.randomUUID(),
+                                            authorityManager.getUserId(),
+                                            idealParentRecords.getKey().getId(),
+                                            idealParentRecords.getValue().getId(),
+                                            s,
+                                            new Timestamp(System.currentTimeMillis()),
+                                            new byte[256]
+                                    );
 
-                                System.out.println("We are sending the message off to the central authority!");
-                                MessageDatagram test = new MessageDatagram(
-                                        UUID.randomUUID(),
-                                        authorityManager.getUserId(),
-                                        idealParentRecords.getKey().getId(),
-                                        idealParentRecords.getValue().getId(),
-                                        s,
-                                        new Timestamp(System.currentTimeMillis()),
-                                        new byte[256]
-                                );
-
-                                authorityManager.write(new VerificationRequest(test));
+                                    authorityManager.write(new VerificationRequest(test));
+                                }
                             }
                         }
                     } else {

@@ -32,6 +32,8 @@ public class AuthorityManager extends AbstractIoConnectorManager {
     @Autowired
     private PeerListResponseHandler peerListResponseHandler;
     @Autowired
+    private LogoutResponseHandler logoutResponseHandler;
+    @Autowired
     private ClientSecurity clientSecurity;
 
     public AuthorityManager() {
@@ -53,6 +55,8 @@ public class AuthorityManager extends AbstractIoConnectorManager {
         getIoHandler().addReceivedMessageHandler(VerificationResponse.class, verificationResponseHandler);
         getIoHandler().addSentMessageHandler(PeerListRequest.class, MessageHandler.NOOP);
         getIoHandler().addReceivedMessageHandler(PeerListResponse.class, peerListResponseHandler);
+        getIoHandler().addSentMessageHandler(LogoutRequest.class, MessageHandler.NOOP);
+        getIoHandler().addReceivedMessageHandler(LogoutResponse.class, logoutResponseHandler);
 
         getService().getFilterChain().addLast("logger", new LoggingFilter());
         getService().getFilterChain().addLast("codec", new ProtocolCodecFilter(new ObjectSerializationCodecFactory()));
