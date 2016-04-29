@@ -3,6 +3,7 @@ package edu.iastate.cs.theseguys.ui;
 import edu.iastate.cs.theseguys.Client;
 import edu.iastate.cs.theseguys.SpringFXMLLoader;
 import edu.iastate.cs.theseguys.database.MessageRecord;
+import edu.iastate.cs.theseguys.eventbus.LogoutEvent;
 import edu.iastate.cs.theseguys.eventbus.MessageEvent;
 import edu.iastate.cs.theseguys.eventbus.NewMessageEvent;
 import edu.iastate.cs.theseguys.network.LogoutRequest;
@@ -77,15 +78,6 @@ public class ChatController implements ApplicationListener<ApplicationEvent> {
     @FXML
     protected void logout(ActionEvent event){
     	client.getAuthorityManager().write(new LogoutRequest());
-    	Platform.runLater(
-                () -> {
-                        try {
-                            changeScreens("/fxml/chat.fxml");
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                }
-        );
     }
     
     private void changeScreens(String screen) throws IOException {
@@ -106,6 +98,21 @@ public class ChatController implements ApplicationListener<ApplicationEvent> {
                         chat.appendText(newMessageEvent.getMessage().getUserId() + ": " + newMessageEvent.getMessage().getMessageBody() + "\n");
                     }
             );
+        }
+        
+        if(event instanceof LogoutEvent){
+        	final LogoutEvent logoutEvent = (LogoutEvent) event;
+        	if(logoutEvent.isConfirmed()){
+        		Platform.runLater(
+                        () -> {
+                                try {
+                                    changeScreens("/fxml/chat.fxml");
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                        }
+                );
+        	}
         }
 
     }
