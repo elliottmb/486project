@@ -7,6 +7,7 @@ import edu.iastate.cs.theseguys.database.QMessageRecord;
 import edu.iastate.cs.theseguys.distributed.ClientManager;
 import edu.iastate.cs.theseguys.distributed.ServerManager;
 import edu.iastate.cs.theseguys.eventbus.NewMessageEvent;
+import edu.iastate.cs.theseguys.network.AncestorsOfRequest;
 import edu.iastate.cs.theseguys.network.MessageDatagram;
 import edu.iastate.cs.theseguys.network.NewMessageAnnouncement;
 import edu.iastate.cs.theseguys.network.ParentsOfRequest;
@@ -165,13 +166,25 @@ public class DatabaseManager {
             boolean readyHasFather = ready
                     .stream()
                     .anyMatch(
-                            e -> e.getValue().getId() == headDatagram.getFatherId()
+                            e -> e.getValue().getId().equals(headDatagram.getFatherId())
                     );
 
             boolean readyHasMother = ready
                     .stream()
                     .anyMatch(
                             e -> e.getValue().getId().equals(headDatagram.getMotherId())
+                    );
+
+            boolean waitingHasFather = waitingOnResponse
+                    .stream()
+                    .anyMatch(
+                            e -> e.getValue().getValue().getId().equals(headDatagram.getFatherId())
+                    );
+
+            boolean waitingHasMother = waitingOnResponse
+                    .stream()
+                    .anyMatch(
+                            e -> e.getValue().getValue().getId().equals(headDatagram.getMotherId())
                     );
 
             boolean waitingHasChild = waitingOnResponse
@@ -205,23 +218,19 @@ public class DatabaseManager {
                     // Make sure father isn't processed or in the ready queue already
                     log.info("We don't have either the father or mother of " + headDatagram.getId());
 
-                    if (!readyHasFather || !readyHasMother) {
+                    if (!((readyHasFather || waitingHasFather) && (readyHasMother || waitingHasMother))) {
                         log.info("We don't have both parents of " + headDatagram.getId());
                         IoSession session = clientManager.getSession(head.getKey());
 
                         if (session != null && session.isConnected()) {
                             if (waitingHasChild) {
-                                session.write(new ParentsOfRequest(Collections.singletonList(headDatagram)));
-                                // TODO: Fix AncestorsOfRequestHandler to not loop foreversss...
-                                //session.write(new AncestorsOfRequest(Collections.singletonList(headDatagram)));
+                                session.write(new AncestorsOfRequest(Collections.singletonList(headDatagram)));
                             } else {
                                 session.write(new ParentsOfRequest(Collections.singletonList(headDatagram)));
                             }
                         } else {
                             if (waitingHasChild) {
-                                clientManager.write(new ParentsOfRequest(Collections.singletonList(headDatagram)));
-                                // TODO: Fix AncestorsOfRequestHandler to not loop foreversss...
-                                //clientManager.write(new AncestorsOfRequest(Collections.singletonList(headDatagram)));
+                                clientManager.write(new AncestorsOfRequest(Collections.singletonList(headDatagram)));
                             } else {
                                 log.warn("Connection with source for " + headDatagram.getId() + " has been lost, messaging all other clients");
                                 clientManager.write(new ParentsOfRequest(Collections.singletonList(headDatagram)));
@@ -292,11 +301,11 @@ public class DatabaseManager {
         public void run() {
             while (running) {
                 processQueue();
-                try {
-                    Thread.sleep(200);
-                } catch (InterruptedException e) {
-                    running = false;
-                }
+                //try {
+                //    Thread.sleep(200);
+                //} catch (InterruptedException e) {
+                //    running = false;
+                //}
             }
         }
     }

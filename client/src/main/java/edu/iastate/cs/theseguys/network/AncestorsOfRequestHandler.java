@@ -26,11 +26,28 @@ public class AncestorsOfRequestHandler implements MessageHandler<AncestorsOfRequ
 
         Set<MessageDatagram> result = new LinkedHashSet<>();
 
-        LinkedList<MessageDatagram> temp = new LinkedList<>(request.getChildren());
+        LinkedList<MessageDatagram> temp = new LinkedList<>();
+
+        for (MessageDatagram messageDatagram : request.getChildren()) {
+            log.info("looking for direct parents of " + messageDatagram.getId() + "( " + messageDatagram.getMotherId() + ", " + messageDatagram.getFatherId() + " )");
+
+            MessageRecord fatherReoord = databaseManager.getRepository().findOne(messageDatagram.getFatherId());
+            MessageRecord motherReoord = databaseManager.getRepository().findOne(messageDatagram.getMotherId());
+
+            temp.add(fatherReoord.toDatagram());
+            temp.add(motherReoord.toDatagram());
+        }
 
         while (!temp.isEmpty()) {
 
             MessageDatagram messageDatagram = temp.pollFirst();
+
+            if (result.contains(messageDatagram)) {
+                log.info("Already processed " + messageDatagram.getId());
+                continue;
+            }
+            result.add(messageDatagram);
+
             log.info("looking for parents of " + messageDatagram.getId() + "( " + messageDatagram.getMotherId() + ", " + messageDatagram.getFatherId() + " )");
 
             MessageRecord fatherReoord = databaseManager.getRepository().findOne(messageDatagram.getFatherId());
@@ -38,17 +55,15 @@ public class AncestorsOfRequestHandler implements MessageHandler<AncestorsOfRequ
 
             if (fatherReoord != null && messageDatagram.getId() != fatherReoord.getId()) {
                 MessageDatagram fatherDatagram = fatherReoord.toDatagram();
-                result.add(fatherDatagram);
 
-                if (!fatherReoord.isRoot()) {
+                if (!fatherReoord.isRoot() && !result.contains(fatherDatagram)) {
                     temp.addLast(fatherDatagram);
                 }
             }
             if (motherReoord != null && messageDatagram.getId() != motherReoord.getId()) {
                 MessageDatagram motherDatagram = motherReoord.toDatagram();
-                result.add(motherDatagram);
 
-                if (!motherReoord.isRoot()) {
+                if (!motherReoord.isRoot() && !result.contains(motherDatagram)) {
                     temp.addLast(motherDatagram);
                 }
             }
