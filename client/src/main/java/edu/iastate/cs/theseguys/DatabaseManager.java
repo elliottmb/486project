@@ -19,12 +19,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ConcurrentLinkedDeque;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicLong;
 
 @Component
@@ -39,14 +35,14 @@ public class DatabaseManager {
     @Autowired
     private ServerManager serverManager;
     private ConcurrentLinkedDeque<Pair<Long, MessageDatagram>> toProcess;
-    private CopyOnWriteArrayList<Pair<AtomicLong, Pair<Long, MessageDatagram>>> waitingOnResponse;
+    private LinkedHashMap<Pair<Long, MessageDatagram>, AtomicLong> waitingOnResponse;
     private LinkedHashSet<Pair<Long, MessageDatagram>> ready;
     private Thread processThread;
     private QueueProcessor queueProcessor;
 
     public DatabaseManager() {
         toProcess = new ConcurrentLinkedDeque<>();
-        waitingOnResponse = new CopyOnWriteArrayList<>();
+        waitingOnResponse = new LinkedHashMap<>();
         ready = new LinkedHashSet<>();
 
 
@@ -93,155 +89,167 @@ public class DatabaseManager {
 
     public synchronized void processQueue() {
 
-        Iterator<Pair<Long, MessageDatagram>> readyIterator = ready.iterator();
-        while (readyIterator.hasNext()) {
-            Pair<Long, MessageDatagram> head = readyIterator.next();
-            readyIterator.remove();
-            MessageDatagram datagram = head.getValue();
-            MessageRecord father = getRepository().findOne(datagram.getFatherId());
-            MessageRecord mother = getRepository().findOne(datagram.getMotherId());
+        if (ready.size() > 0) {
+            Iterator<Pair<Long, MessageDatagram>> readyIterator = ready.iterator();
+            while (readyIterator.hasNext()) {
+                Pair<Long, MessageDatagram> head = readyIterator.next();
+                readyIterator.remove();
+                MessageDatagram datagram = head.getValue();
+                MessageRecord father = getRepository().findOne(datagram.getFatherId());
+                MessageRecord mother = getRepository().findOne(datagram.getMotherId());
 
-            log.info("Ready queue processing of " + datagram);
-            log.info("Father result: " + father);
-            log.info("Mother result: " + mother);
+                log.info("Ready queue processing of " + datagram);
+                log.info("Father result: " + father);
+                log.info("Mother result: " + mother);
 
-            // Check one last time that we don't already have this message
-            if (getRepository().exists(datagram.getId())) {
-                log.info("We already saved " + datagram);
-                continue;
-            }
+                // Check one last time that we don't already have this message
+                if (getRepository().exists(datagram.getId())) {
+                    log.info("We already saved " + datagram);
+                    continue;
+                }
 
-            // Be sure!
-            if (father == null || mother == null) {
-                log.info("We have lost the mother or father of " + datagram);
-                toProcess.add(head);
-            } else {
-                log.info("Saving record for " + datagram);
+                // Be sure!
+                if (father == null || mother == null) {
+                    log.info("We have lost the mother or father of " + datagram);
+                    toProcess.add(head);
+                } else {
+                    log.info("Saving record for " + datagram);
 
-                MessageRecord newRecord = new MessageRecord(datagram.getId(), datagram.getUserId(), datagram.getMessageBody(), datagram.getTimestamp(), datagram.getSignature());
-                newRecord.setFather(father);
-                newRecord.setMother(mother);
-                newRecord = getRepository().save(newRecord);
-                applicationEventPublisher.publishEvent(new NewMessageEvent(this, newRecord));
+                    MessageRecord newRecord = new MessageRecord(datagram.getId(), datagram.getUserId(), datagram.getMessageBody(), datagram.getTimestamp(), datagram.getSignature());
+                    newRecord.setFather(father);
+                    newRecord.setMother(mother);
+                    newRecord = getRepository().save(newRecord);
+                    applicationEventPublisher.publishEvent(new NewMessageEvent(this, newRecord));
 
-                // If the message originated from this client, notify other clients!
-                if (head.getKey() < 0L) {
-                    serverManager.write(new NewMessageAnnouncement(datagram));
+                    // If the message originated from this client, notify other clients!
+                    if (head.getKey() < 0L) {
+                        serverManager.write(new NewMessageAnnouncement(datagram));
+                    }
                 }
             }
         }
 
-        // Check if we've lost connection to producers
-        if (clientManager != null && clientManager.getService().getManagedSessionCount() == 0) {
-            // If we have, we should purge the querying queues
-            if (toProcess.size() > 0 || waitingOnResponse.size() > 0) {
-                log.info("Preparing to purge processing queues due to complete connection loss.");
+        if (waitingOnResponse.size() > 0) {
+            Iterator<Map.Entry<Pair<Long, MessageDatagram>, AtomicLong>> waitingIterator = waitingOnResponse.entrySet().iterator();
+
+            while (waitingIterator.hasNext()) {
+                Map.Entry<Pair<Long, MessageDatagram>, AtomicLong> head = waitingIterator.next();
+                MessageDatagram headDatagram = head.getKey().getValue();
+
+                boolean readyHasFather = ready
+                        .stream()
+                        .anyMatch(
+                                e -> e.getValue().getId().equals(headDatagram.getFatherId())
+                        );
+
+                boolean readyHasMother = ready
+                        .stream()
+                        .anyMatch(
+                                e -> e.getValue().getId().equals(headDatagram.getMotherId())
+                        );
+
+                if ((exists(headDatagram.getFatherId()) || readyHasFather) && (exists(headDatagram.getMotherId()) || readyHasMother)) {
+                    log.info("waitingQueue: Moving " + headDatagram.getId() + " to ready queue");
+                    ready.add(head.getKey());
+
+                    waitingIterator.remove();
+                } else {
+                    long waited = head.getValue().getAndIncrement();
+
+                    //TODO: Handle the waiting period
+                    log.info("waitingQueue: Leaving " + headDatagram.getId() + " in waiting queue");
+                }
             }
-            toProcess.clear();
-            waitingOnResponse.clear();
         }
-
-        if (!waitingOnResponse.isEmpty()) {
-            Pair<AtomicLong, Pair<Long, MessageDatagram>> head = waitingOnResponse.get(0);
-            waitingOnResponse.remove(0);
-            MessageDatagram headDatagram = head.getValue().getValue();
-
-            if (exists(headDatagram.getFatherId()) && exists(headDatagram.getMotherId())) {
-                log.info("Moving " + head.getValue().getValue().getId() + " to ready queue from waiting");
-                ready.add(head.getValue());
-            } else {
-                long waited = head.getKey().getAndIncrement();
-
-                //TODO: Handle the waiting period
-                log.info("Readding " + head.getValue().getValue().getId() + " to waiting");
-                waitingOnResponse.add(head);
-            }
-        }
-
         if (!toProcess.isEmpty()) {
             Pair<Long, MessageDatagram> head = toProcess.pop();
 
             MessageDatagram headDatagram = head.getValue();
 
-            boolean readyHasFather = ready
-                    .stream()
-                    .anyMatch(
-                            e -> e.getValue().getId().equals(headDatagram.getFatherId())
-                    );
-
-            boolean readyHasMother = ready
-                    .stream()
-                    .anyMatch(
-                            e -> e.getValue().getId().equals(headDatagram.getMotherId())
-                    );
-
-            boolean waitingHasFather = waitingOnResponse
-                    .stream()
-                    .anyMatch(
-                            e -> e.getValue().getValue().getId().equals(headDatagram.getFatherId())
-                    );
-
-            boolean waitingHasMother = waitingOnResponse
-                    .stream()
-                    .anyMatch(
-                            e -> e.getValue().getValue().getId().equals(headDatagram.getMotherId())
-                    );
-
-            boolean waitingHasChild = waitingOnResponse
-                    .stream()
-                    .anyMatch(
-                            e -> headDatagram.getId().equals(e.getValue().getValue().getFatherId()) || headDatagram.getId().equals(e.getValue().getValue().getMotherId())
-                    );
-
-            boolean waitingHasThis = waitingOnResponse
-                    .stream()
-                    .anyMatch(
-                            e -> headDatagram.getId().equals(e.getValue().getValue().getId())
-                    );
-
             log.info("toProcess: " + headDatagram.getId());
-            log.info("readyHasFather: " + readyHasFather);
-            log.info("readyHasMother: " + readyHasMother);
-            log.info("waitingHasChild: " + waitingHasChild);
-            log.info("waitingHasThis: " + waitingHasThis);
 
             // Make sure it doesn't already exist
             if (!exists(headDatagram.getId())) {
                 log.info("We don't already have " + headDatagram.getId());
-                // Check if we have both the father and mother already
-                if (exists(headDatagram.getFatherId()) && exists(headDatagram.getMotherId())) {
-                    log.info("We have the parents for " + headDatagram.getId());
+                boolean readyHasFather = ready
+                        .stream()
+                        .anyMatch(
+                                e -> e.getValue().getId().equals(headDatagram.getFatherId())
+                        );
+
+                boolean readyHasMother = ready
+                        .stream()
+                        .anyMatch(
+                                e -> e.getValue().getId().equals(headDatagram.getMotherId())
+                        );
+
+                // Check to see if we have the father and mother ready to save or already saved
+                if ((exists(headDatagram.getFatherId()) || readyHasFather) && (exists(headDatagram.getMotherId()) || readyHasMother)) {
                     // If we do, move this guy to the ready queue
-                    log.info("Moving " + headDatagram.getId() + " to ready queue from to process");
+                    log.info("toProcess: father or mother " + headDatagram.getId() + " already saved or in ready queue");
                     ready.add(head);
                 } else {
                     // Make sure father isn't processed or in the ready queue already
-                    log.info("We don't have either the father or mother of " + headDatagram.getId());
+                    log.info("toProcess: father or mother " + headDatagram.getId() + " NOT saved or in ready queue");
 
-                    if (!((readyHasFather || waitingHasFather) && (readyHasMother || waitingHasMother))) {
-                        log.info("We don't have both parents of " + headDatagram.getId());
-                        IoSession session = clientManager.getSession(head.getKey());
+                    boolean waitingHasThis = waitingOnResponse
+                            .keySet()
+                            .stream()
+                            .anyMatch(
+                                    e -> headDatagram.getId().equals(e.getValue().getId())
+                            );
 
-                        if (session != null && session.isConnected()) {
-                            if (waitingHasChild) {
-                                session.write(new AncestorsOfRequest(Collections.singletonList(headDatagram)));
+                    if (waitingHasThis) {
+                        log.info("toProcess: Waiting already has " + headDatagram.getId());
+
+                    } else {
+                        log.info("toProcess: Waiting DOES NOT have " + headDatagram.getId());
+
+                        boolean waitingHasFather = waitingOnResponse
+                                .keySet()
+                                .stream()
+                                .anyMatch(
+                                        e -> e.getValue().getId().equals(headDatagram.getFatherId())
+                                );
+
+                        boolean waitingHasMother = waitingOnResponse
+                                .keySet()
+                                .stream()
+                                .anyMatch(
+                                        e -> e.getValue().getId().equals(headDatagram.getMotherId())
+                                );
+
+                        if (!((readyHasFather || waitingHasFather) && (readyHasMother || waitingHasMother))) {
+                            log.info("toProcess: missing a parent of  " + headDatagram.getId());
+                            IoSession session = clientManager.getSession(head.getKey());
+
+                            boolean waitingHasChild = waitingOnResponse
+                                    .keySet()
+                                    .stream()
+                                    .anyMatch(
+                                            e -> headDatagram.getId().equals(e.getValue().getFatherId()) || headDatagram.getId().equals(e.getValue().getMotherId())
+                                    );
+
+                            if (session != null && session.isConnected()) {
+                                if (waitingHasChild) {
+                                    session.write(new AncestorsOfRequest(Collections.singletonList(headDatagram)));
+                                } else {
+                                    session.write(new ParentsOfRequest(Collections.singletonList(headDatagram)));
+                                }
                             } else {
-                                session.write(new ParentsOfRequest(Collections.singletonList(headDatagram)));
+                                if (waitingHasChild) {
+                                    log.warn("toProcess: Connection with source for " + headDatagram.getId() + " has been lost, messaging all other clients");
+                                    clientManager.write(new AncestorsOfRequest(Collections.singletonList(headDatagram)));
+                                } else {
+                                    log.warn("toProcess: Connection with source for " + headDatagram.getId() + " has been lost, messaging all other clients");
+                                    clientManager.write(new ParentsOfRequest(Collections.singletonList(headDatagram)));
+                                }
                             }
-                        } else {
-                            if (waitingHasChild) {
-                                clientManager.write(new AncestorsOfRequest(Collections.singletonList(headDatagram)));
-                            } else {
-                                log.warn("Connection with source for " + headDatagram.getId() + " has been lost, messaging all other clients");
-                                clientManager.write(new ParentsOfRequest(Collections.singletonList(headDatagram)));
-                            }
-                        }
-                        log.info("Requested parents for " + headDatagram.getId() + ", moving to the waiting queue");
+                            log.info("toProcess: Requested parents for " + headDatagram.getId() + ", moving to the waiting queue");
 
 
-                        if (!waitingHasThis) {
                             // Attach an AtomicLong to the pair to help track time in waiting queue
-                            waitingOnResponse.add(new Pair<>(new AtomicLong(0), head));
+                            waitingOnResponse.put(head, new AtomicLong(0));
                         }
                     }
                     // TODO: Other cases? I don't know. Probably not.
@@ -291,7 +299,10 @@ public class DatabaseManager {
 
         private volatile boolean running = true;
 
+        private long lastDelayed;
+
         public QueueProcessor() {
+            lastDelayed = System.currentTimeMillis();
         }
 
         public void terminate() {
@@ -300,12 +311,18 @@ public class DatabaseManager {
 
         public void run() {
             while (running) {
+                if (toProcess.size() > 0 || ready.size() > 0) {
+                    lastDelayed = System.currentTimeMillis();
+                }
                 processQueue();
-                //try {
-                //    Thread.sleep(200);
-                //} catch (InterruptedException e) {
-                //    running = false;
-                //}
+                if (System.currentTimeMillis() - lastDelayed > 1000) {
+                    try {
+                        log.info("Delaying processing queue");
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        running = false;
+                    }
+                }
             }
         }
     }
