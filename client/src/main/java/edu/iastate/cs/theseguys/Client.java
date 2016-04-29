@@ -97,7 +97,7 @@ public class Client implements CommandLineRunner {
         Platform.runLater(
                 () -> {
                     Stage stage = new Stage();
-                    stage.setTitle("TEST");
+                    stage.setTitle("Distributed Immutable Ledger Chat");
                     stage.setOnCloseRequest(
                             event -> {
                                 dispose();
