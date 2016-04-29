@@ -38,13 +38,13 @@ public class LogoutResponseHandler implements MessageHandler<LogoutResponse> {
 
             clientManager.getService().getManagedSessions().forEach(
                     (e, b) -> {
-                        b.closeOnFlush().awaitUninterruptibly();
+                        b.closeOnFlush();
                     }
             );
 
             serverManager.getService().getManagedSessions().forEach(
                     (e, b) -> {
-                        b.closeOnFlush().awaitUninterruptibly();
+                        b.closeOnFlush();
                     }
             );
 
