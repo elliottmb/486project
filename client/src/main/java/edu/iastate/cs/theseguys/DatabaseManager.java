@@ -21,6 +21,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.stream.Collectors;
 
 @Component
 public class DatabaseManager {
@@ -36,6 +37,8 @@ public class DatabaseManager {
     private ConcurrentLinkedDeque<Pair<Long, MessageDatagram>> toProcess;
     private LinkedHashMap<Pair<Long, MessageDatagram>, Long> waitingOnResponse;
     private LinkedHashSet<Pair<Long, MessageDatagram>> ready;
+    private LinkedHashSet<Pair<Long, MessageDatagram>> needAncestors;
+    private LinkedHashSet<Pair<Long, MessageDatagram>> needParents;
     private Thread processThread;
     private QueueProcessor queueProcessor;
 
@@ -45,8 +48,9 @@ public class DatabaseManager {
         toProcess = new ConcurrentLinkedDeque<>();
         waitingOnResponse = new LinkedHashMap<>();
         ready = new LinkedHashSet<>();
+        needAncestors = new LinkedHashSet<>();
+        needParents = new LinkedHashSet<>();
         knownUsernames = new LinkedHashMap<>();
-
 
         queueProcessor = new QueueProcessor();
         processThread = new Thread(queueProcessor);
@@ -158,7 +162,7 @@ public class DatabaseManager {
                 } else {
                     long waited = head.getValue();
 
-                    if (System.currentTimeMillis() - waited > 120000) {
+                    if (System.currentTimeMillis() - waited > 30000) {
                         log.info("waitingQueue: Waited too long, moving " + headDatagram.getId() + " back to toProcess");
                         toProcess.addLast(head.getKey());
                         waitingIterator.remove();
@@ -170,8 +174,10 @@ public class DatabaseManager {
                 }
             }
         }
-        if (!toProcess.isEmpty()) {
-            Pair<Long, MessageDatagram> head = toProcess.pop();
+        Iterator<Pair<Long, MessageDatagram>> toProcessIterator = toProcess.iterator();
+        while (toProcessIterator.hasNext()) {
+            Pair<Long, MessageDatagram> head = toProcessIterator.next();
+            toProcessIterator.remove();
 
             MessageDatagram headDatagram = head.getValue();
 
@@ -239,26 +245,11 @@ public class DatabaseManager {
                                             e -> headDatagram.getId().equals(e.getValue().getFatherId()) || headDatagram.getId().equals(e.getValue().getMotherId())
                                     );
 
-                            if (session != null && session.isConnected()) {
-                                if (waitingHasChild) {
-                                    session.write(new AncestorsOfRequest(Collections.singletonList(headDatagram)));
-                                } else {
-                                    session.write(new ParentsOfRequest(Collections.singletonList(headDatagram)));
-                                }
+                            if (waitingHasChild) {
+                                needAncestors.add(head);
                             } else {
-                                if (waitingHasChild) {
-                                    log.warn("toProcess: Connection with source for " + headDatagram.getId() + " has been lost, messaging all other clients");
-                                    clientManager.write(new AncestorsOfRequest(Collections.singletonList(headDatagram)));
-                                } else {
-                                    log.warn("toProcess: Connection with source for " + headDatagram.getId() + " has been lost, messaging all other clients");
-                                    clientManager.write(new ParentsOfRequest(Collections.singletonList(headDatagram)));
-                                }
+                                needParents.add(head);
                             }
-                            log.info("toProcess: Requested parents for " + headDatagram.getId() + ", moving to the waiting queue");
-
-
-                            // Attach an AtomicLong to the pair to help track time in waiting queue
-                            waitingOnResponse.put(head, System.currentTimeMillis());
                         }
                     }
                     // TODO: Other cases? I don't know. Probably not.
@@ -269,6 +260,73 @@ public class DatabaseManager {
             }
         }
 
+        if (!needAncestors.isEmpty()) {
+            Map<Long, List<Pair<Long, MessageDatagram>>> collect = needAncestors
+                    .stream()
+                    .collect(
+                            Collectors.groupingBy(Pair::getKey)
+                    );
+
+            for (Map.Entry<Long, List<Pair<Long, MessageDatagram>>> entry : collect.entrySet()) {
+                IoSession session = clientManager.getSession(entry.getKey());
+
+                List<MessageDatagram> toSend = entry.getValue()
+                        .stream()
+                        .map(Pair::getValue)
+                        .collect(Collectors.toList());
+
+                if (session != null && session.isConnected()) {
+                    session.write(new AncestorsOfRequest(toSend));
+                } else {
+                    log.warn("toProcess: Connection with source for " + entry.getValue() + " has been lost, messaging all other clients");
+                    clientManager.write(new AncestorsOfRequest(toSend));
+                }
+
+                log.info("toProcess: Requested ancestors for " + entry.getValue() + ", moving to the waiting queue");
+
+                long timeRequested = System.currentTimeMillis();
+                // Attach an AtomicLong to the pair to help track time in waiting queue
+                for (Pair<Long, MessageDatagram> pair : entry.getValue()) {
+                    waitingOnResponse.put(pair, timeRequested);
+                }
+            }
+
+            needAncestors.clear();
+        }
+
+        if (!needParents.isEmpty()) {
+
+            Map<Long, List<Pair<Long, MessageDatagram>>> collect = needParents
+                    .stream()
+                    .collect(
+                            Collectors.groupingBy(Pair::getKey)
+                    );
+
+            for (Map.Entry<Long, List<Pair<Long, MessageDatagram>>> entry : collect.entrySet()) {
+                IoSession session = clientManager.getSession(entry.getKey());
+
+                List<MessageDatagram> toSend = entry.getValue()
+                        .stream()
+                        .map(Pair::getValue)
+                        .collect(Collectors.toList());
+
+                if (session != null && session.isConnected()) {
+                    session.write(new ParentsOfRequest(toSend));
+                } else {
+                    log.warn("toProcess: Connection with source for " + entry.getValue() + " has been lost, messaging all other clients");
+                    clientManager.write(new ParentsOfRequest(toSend));
+                }
+                log.info("toProcess: Requested parents for " + entry.getValue() + ", moving to the waiting queue");
+
+                long timeRequested = System.currentTimeMillis();
+                // Attach an AtomicLong to the pair to help track time in waiting queue
+                for (Pair<Long, MessageDatagram> pair : entry.getValue()) {
+                    waitingOnResponse.put(pair, timeRequested);
+                }
+            }
+
+            needParents.clear();
+        }
     }
 
     /**
