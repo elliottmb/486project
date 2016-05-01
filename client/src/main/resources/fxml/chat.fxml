@@ -18,7 +18,7 @@
 			</rowConstraints>
 			<children>
 				<Button fx:id="submit" mnemonicParsing="false" onAction="#submitText" text="Submit" GridPane.columnIndex="1" GridPane.rowIndex="1" />
-				<TextArea fx:id="chat" editable="false" prefHeight="200.0" prefWidth="200.0" />
+				<ListView fx:id="chat" editable="false" prefHeight="200.0" prefWidth="200.0" />
 				<TextField fx:id="input" GridPane.rowIndex="1" />
 				<TextArea fx:id="users" editable="false" prefHeight="307.0" prefWidth="176.0" GridPane.columnIndex="1" />
             <Button fx:id="logout" onAction="#logout" alignment="CENTER_RIGHT" mnemonicParsing="false" text="Logout" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="1" />

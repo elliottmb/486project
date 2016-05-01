@@ -4,20 +4,21 @@ import edu.iastate.cs.theseguys.Client;
 import edu.iastate.cs.theseguys.SpringFXMLLoader;
 import edu.iastate.cs.theseguys.database.MessageRecord;
 import edu.iastate.cs.theseguys.eventbus.LogoutEvent;
-import edu.iastate.cs.theseguys.eventbus.MessageEvent;
 import edu.iastate.cs.theseguys.eventbus.NewMessageEvent;
 import edu.iastate.cs.theseguys.network.LogoutRequest;
 import edu.iastate.cs.theseguys.network.MessageDatagram;
 import edu.iastate.cs.theseguys.network.VerificationRequest;
 import javafx.application.Platform;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.collections.transformation.SortedList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.stage.Stage;
+import javafx.util.Callback;
 import javafx.util.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEvent;
@@ -28,12 +29,13 @@ import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Component
 public class ChatController implements ApplicationListener<ApplicationEvent> {
 
     @FXML
-    private TextArea chat;
+    private ListView<MessageDatagram> chat;
 
     @FXML
     private TextArea users;
@@ -43,7 +45,7 @@ public class ChatController implements ApplicationListener<ApplicationEvent> {
 
     @FXML
     private Button submit;
-    
+
     @FXML
     private Button logout;
     @Autowired
@@ -51,15 +53,49 @@ public class ChatController implements ApplicationListener<ApplicationEvent> {
     @Autowired
     private Client client;
 
+    private ObservableList<MessageDatagram> chatMessages;
+
+    private SortedList<MessageDatagram> sortedList;
+
+    public ChatController() {
+        chatMessages = FXCollections.observableArrayList();
+        sortedList = new SortedList<>(chatMessages);
+        sortedList.setComparator(
+                (o1, o2) -> o1.getTimestamp().compareTo(o2.getTimestamp())
+        );
+    }
+
     @FXML
     protected void initialize() {
-        // TODO Show users, Get past 20 messages
+        chat.setCellFactory(
+                new Callback<ListView<MessageDatagram>, ListCell<MessageDatagram>>() {
+
+                    @Override
+                    public ListCell<MessageDatagram> call(ListView<MessageDatagram> p) {
+                        return new ListCell<MessageDatagram>() {
+                            @Override
+                            protected void updateItem(MessageDatagram t, boolean bln) {
+                                super.updateItem(t, bln);
+                                if (t != null) {
+                                    setText(t.getUserId() + "<" + t.getTimestamp() + ">: " + t.getMessageBody());
+                                }
+                            }
+
+                        };
+                    }
+                }
+        );
+        chat.setItems(sortedList);
+        List<MessageRecord> messages = client.getDatabaseManager()
+                .getRepository()
+                .findFirst20ByOrderByTimestampDesc();
+        messages
+                .stream()
+                .map(MessageRecord::toDatagram)
+                .collect(Collectors.toCollection(() -> chatMessages));
         submit.setDefaultButton(true);
-        List<MessageRecord> messages = client.getDatabaseManager().getRepository().findFirst20ByOrderByTimestampDesc();
-        for (int i = messages.size() - 1; i >= 0; i--) {
-            MessageRecord m = messages.get(i);
-            chat.appendText(m.getUserId() + ": " + m.getMessageBody() + "\n");
-        }
+
+        // TODO Show users
     }
 
     @FXML
@@ -74,12 +110,12 @@ public class ChatController implements ApplicationListener<ApplicationEvent> {
         }
         input.setText("");
     }
-    
+
     @FXML
-    protected void logout(ActionEvent event){
-    	client.getAuthorityManager().write(new LogoutRequest());
+    protected void logout(ActionEvent event) {
+        client.getAuthorityManager().write(new LogoutRequest());
     }
-    
+
     private void changeScreens(String screen) throws IOException {
         Stage stage = (Stage) chat.getScene().getWindow();
         Parent root = springFXMLLoader.load(screen);
@@ -95,24 +131,24 @@ public class ChatController implements ApplicationListener<ApplicationEvent> {
             final NewMessageEvent newMessageEvent = (NewMessageEvent) event;
             Platform.runLater(
                     () -> {
-                        chat.appendText(newMessageEvent.getMessage().getUserId() + ": " + newMessageEvent.getMessage().getMessageBody() + "\n");
+                        chatMessages.add(newMessageEvent.getMessage().toDatagram());
                     }
             );
         }
-        
-        if(event instanceof LogoutEvent){
-        	final LogoutEvent logoutEvent = (LogoutEvent) event;
-        	if(logoutEvent.isConfirmed()){
-        		Platform.runLater(
+
+        if (event instanceof LogoutEvent) {
+            final LogoutEvent logoutEvent = (LogoutEvent) event;
+            if (logoutEvent.isConfirmed()) {
+                Platform.runLater(
                         () -> {
-                                try {
-                                    changeScreens("/fxml/login.fxml");
-                                } catch (IOException e) {
-                                    e.printStackTrace();
-                                }
+                            try {
+                                changeScreens("/fxml/login.fxml");
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
                         }
                 );
-        	}
+            }
         }
 
     }
