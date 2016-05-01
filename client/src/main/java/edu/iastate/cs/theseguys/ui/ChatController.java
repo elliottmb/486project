@@ -7,6 +7,7 @@ import edu.iastate.cs.theseguys.eventbus.LogoutEvent;
 import edu.iastate.cs.theseguys.eventbus.NewMessageEvent;
 import edu.iastate.cs.theseguys.network.LogoutRequest;
 import edu.iastate.cs.theseguys.network.MessageDatagram;
+import edu.iastate.cs.theseguys.network.UserListRequest;
 import edu.iastate.cs.theseguys.network.VerificationRequest;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -28,6 +29,7 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -72,15 +74,30 @@ public class ChatController implements ApplicationListener<ApplicationEvent> {
 
                     @Override
                     public ListCell<MessageDatagram> call(ListView<MessageDatagram> p) {
+
                         return new ListCell<MessageDatagram>() {
                             @Override
-                            protected void updateItem(MessageDatagram t, boolean bln) {
-                                super.updateItem(t, bln);
-                                if (t != null) {
-                                    setText(t.getUserId() + "<" + t.getTimestamp() + ">: " + t.getMessageBody());
+                            protected void updateItem(MessageDatagram messageDatagram, boolean bln) {
+                                super.updateItem(messageDatagram, bln);
+                                if (messageDatagram != null) {
+                                    Map<UUID, String> knownUsernames = client.getDatabaseManager().getKnownUsernames();
+
+                                    String time = messageDatagram.getTimestamp().toString();
+                                    time = time.substring(0, time.indexOf("."));
+
+                                    if (knownUsernames != null && knownUsernames.size() > 0) {
+                                        String username = knownUsernames.get(messageDatagram.getUserId());
+                                        if (username != null) {
+                                            setText("<" + username + "|" + time + ">: " + messageDatagram.getMessageBody());
+                                            return;
+                                        } else {
+                                            // Since we didn't have it, let's look it up for later... TODO: Update chat list on response?
+                                            client.getAuthorityManager().write(new UserListRequest());
+                                        }
+                                    }
+                                    setText("<u#" + messageDatagram.getUserId().toString().substring(0, 7) + "|" + time + ">: " + messageDatagram.getMessageBody());
                                 }
                             }
-
                         };
                     }
                 }

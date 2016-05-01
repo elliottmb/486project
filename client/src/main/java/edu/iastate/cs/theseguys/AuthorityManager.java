@@ -32,13 +32,14 @@ public class AuthorityManager extends AbstractIoConnectorManager {
     @Autowired
     private PeerListResponseHandler peerListResponseHandler;
     @Autowired
+    private UserListResponseHandler userListResponseHandler;
+    @Autowired
     private LogoutResponseHandler logoutResponseHandler;
     @Autowired
     private ClientSecurity clientSecurity;
-
+    
     public AuthorityManager() {
         super(new NioSocketConnector(), new DemuxingIoHandler());
-
     }
 
     public synchronized boolean isLoggedIn() {
@@ -55,6 +56,8 @@ public class AuthorityManager extends AbstractIoConnectorManager {
         getIoHandler().addReceivedMessageHandler(VerificationResponse.class, verificationResponseHandler);
         getIoHandler().addSentMessageHandler(PeerListRequest.class, MessageHandler.NOOP);
         getIoHandler().addReceivedMessageHandler(PeerListResponse.class, peerListResponseHandler);
+        getIoHandler().addSentMessageHandler(UserListRequest.class, MessageHandler.NOOP);
+        getIoHandler().addReceivedMessageHandler(UserListResponse.class, userListResponseHandler);
         getIoHandler().addSentMessageHandler(LogoutRequest.class, MessageHandler.NOOP);
         getIoHandler().addReceivedMessageHandler(LogoutResponse.class, logoutResponseHandler);
 
@@ -86,5 +89,6 @@ public class AuthorityManager extends AbstractIoConnectorManager {
     public synchronized void setPublicKey(PublicKey publicKey) {
         this.publicKey = publicKey;
     }
+
 
 }

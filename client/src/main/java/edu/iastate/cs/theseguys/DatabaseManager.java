@@ -39,10 +39,13 @@ public class DatabaseManager {
     private Thread processThread;
     private QueueProcessor queueProcessor;
 
+    private Map<UUID, String> knownUsernames;
+
     public DatabaseManager() {
         toProcess = new ConcurrentLinkedDeque<>();
         waitingOnResponse = new LinkedHashMap<>();
         ready = new LinkedHashSet<>();
+        knownUsernames = new LinkedHashMap<>();
 
 
         queueProcessor = new QueueProcessor();
@@ -301,7 +304,15 @@ public class DatabaseManager {
         return Iterables.getFirst(getRecordsByHowFruitless(), null);
     }
 
-    protected class QueueProcessor implements Runnable {
+    public synchronized Map<UUID, String> getKnownUsernames() {
+        return knownUsernames;
+    }
+
+    public synchronized void setKnownUsernames(Map<UUID, String> knownUsernames) {
+        this.knownUsernames = knownUsernames;
+    }
+
+    private class QueueProcessor implements Runnable {
 
         private volatile boolean running = true;
 

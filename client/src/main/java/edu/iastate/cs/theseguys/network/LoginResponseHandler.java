@@ -29,6 +29,7 @@ public class LoginResponseHandler implements MessageHandler<LoginResponse> {
             authorityManager.setPublicKey(message.getPublicKey());
 
             session.write(new PeerListRequest());
+            session.write(new UserListRequest());
         }
 
         applicationEventPublisher.publishEvent(new LoginEvent(this, message.isSuccess()));
