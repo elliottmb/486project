@@ -30,6 +30,8 @@ public class AncestorsOfRequestHandler implements MessageHandler<AncestorsOfRequ
 
         LinkedList<MessageDatagram> temp = new LinkedList<>();
 
+        LinkedHashMap<MessageDatagram, Integer> depthLimited = new LinkedHashMap<>();
+
         for (MessageDatagram messageDatagram : request.getChildren()) {
             log.info("looking for direct parents of " + messageDatagram.getId() + "( " + messageDatagram.getMotherId() + ", " + messageDatagram.getFatherId() + " )");
 
@@ -38,11 +40,19 @@ public class AncestorsOfRequestHandler implements MessageHandler<AncestorsOfRequ
 
             temp.add(fatherReoord.toDatagram());
             temp.add(motherReoord.toDatagram());
+
+            depthLimited.put(fatherReoord.toDatagram(), 0);
+            depthLimited.put(motherReoord.toDatagram(), 0);
         }
 
         while (!temp.isEmpty()) {
-
             MessageDatagram messageDatagram = temp.pollFirst();
+            Integer depth = depthLimited.get(messageDatagram);
+
+            if (depth > 4) {
+                log.info("Exceeded max depth, skipping " + messageDatagram.getId());
+                continue;
+            }
 
             if (ancestors.containsKey(messageDatagram.getId())) {
                 log.info("Already processed " + messageDatagram.getId());
@@ -61,6 +71,9 @@ public class AncestorsOfRequestHandler implements MessageHandler<AncestorsOfRequ
 
                     if (!fatherReoord.isRoot()) {
                         temp.addLast(fatherDatagram);
+
+                        depthLimited.put(fatherDatagram, depth + 1);
+
                     }
                 }
             }
@@ -74,6 +87,7 @@ public class AncestorsOfRequestHandler implements MessageHandler<AncestorsOfRequ
 
                     if (!motherReoord.isRoot()) {
                         temp.addLast(motherDatagram);
+                        depthLimited.put(motherDatagram, depth + 1);
                     }
                 }
             }
