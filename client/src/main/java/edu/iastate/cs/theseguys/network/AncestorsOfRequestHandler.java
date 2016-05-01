@@ -9,9 +9,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.LinkedHashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
-import java.util.Set;
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Component
 public class AncestorsOfRequestHandler implements MessageHandler<AncestorsOfRequest> {
@@ -24,7 +26,7 @@ public class AncestorsOfRequestHandler implements MessageHandler<AncestorsOfRequ
     public void handleMessage(IoSession session, AncestorsOfRequest request) throws Exception {
         log.info("Received " + request.toString());
 
-        Set<MessageDatagram> result = new LinkedHashSet<>();
+        LinkedHashMap<UUID, MessageDatagram> ancestors = new LinkedHashMap<>();
 
         LinkedList<MessageDatagram> temp = new LinkedList<>();
 
@@ -42,34 +44,47 @@ public class AncestorsOfRequestHandler implements MessageHandler<AncestorsOfRequ
 
             MessageDatagram messageDatagram = temp.pollFirst();
 
-            if (result.contains(messageDatagram)) {
+            if (ancestors.containsKey(messageDatagram.getId())) {
                 log.info("Already processed " + messageDatagram.getId());
                 continue;
             }
-            result.add(messageDatagram);
+            ancestors.put(messageDatagram.getId(), messageDatagram);
 
-            log.info("looking for parents of " + messageDatagram.getId() + "( " + messageDatagram.getMotherId() + ", " + messageDatagram.getFatherId() + " )");
+            if (ancestors.containsKey(messageDatagram.getFatherId())) {
+                log.info("Already found father of " + messageDatagram.getId() + ": " + messageDatagram.getFatherId());
+            } else {
+                log.info("Looking for father of " + messageDatagram.getId() + ": " + messageDatagram.getFatherId());
+                MessageRecord fatherReoord = databaseManager.getRepository().findOne(messageDatagram.getFatherId());
 
-            MessageRecord fatherReoord = databaseManager.getRepository().findOne(messageDatagram.getFatherId());
-            MessageRecord motherReoord = databaseManager.getRepository().findOne(messageDatagram.getMotherId());
+                if (fatherReoord != null && messageDatagram.getId() != fatherReoord.getId()) {
+                    MessageDatagram fatherDatagram = fatherReoord.toDatagram();
 
-            if (fatherReoord != null && messageDatagram.getId() != fatherReoord.getId()) {
-                MessageDatagram fatherDatagram = fatherReoord.toDatagram();
-
-                if (!fatherReoord.isRoot() && !result.contains(fatherDatagram)) {
-                    temp.addLast(fatherDatagram);
+                    if (!fatherReoord.isRoot()) {
+                        temp.addLast(fatherDatagram);
+                    }
                 }
             }
-            if (motherReoord != null && messageDatagram.getId() != motherReoord.getId()) {
-                MessageDatagram motherDatagram = motherReoord.toDatagram();
+            if (ancestors.containsKey(messageDatagram.getMotherId())) {
+                log.info("Already found mother of " + messageDatagram.getId() + ": " + messageDatagram.getMotherId());
+            } else {
+                log.info("Looking for mother of " + messageDatagram.getId() + ": " + messageDatagram.getMotherId());
+                MessageRecord motherReoord = databaseManager.getRepository().findOne(messageDatagram.getMotherId());
+                if (motherReoord != null && messageDatagram.getId() != motherReoord.getId()) {
+                    MessageDatagram motherDatagram = motherReoord.toDatagram();
 
-                if (!motherReoord.isRoot() && !result.contains(motherDatagram)) {
-                    temp.addLast(motherDatagram);
+                    if (!motherReoord.isRoot()) {
+                        temp.addLast(motherDatagram);
+                    }
                 }
             }
         }
 
-        session.write(new AncestorsOfResponse(new LinkedList<>(result)));
+        List<MessageDatagram> results = ancestors.values()
+                .stream()
+                .sorted()
+                .collect(Collectors.toList());
+
+        session.write(new AncestorsOfResponse(results));
     }
 }
 

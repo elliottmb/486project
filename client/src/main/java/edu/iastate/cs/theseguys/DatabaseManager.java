@@ -155,7 +155,7 @@ public class DatabaseManager {
                 } else {
                     long waited = head.getValue();
 
-                    if (System.currentTimeMillis() - waited > 30000) {
+                    if (System.currentTimeMillis() - waited > 120000) {
                         log.info("waitingQueue: Waited too long, moving " + headDatagram.getId() + " back to toProcess");
                         toProcess.addLast(head.getKey());
                         waitingIterator.remove();

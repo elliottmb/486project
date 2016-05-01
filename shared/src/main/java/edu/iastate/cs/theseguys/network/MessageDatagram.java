@@ -7,7 +7,7 @@ import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.UUID;
 
-public class MessageDatagram implements Serializable {
+public class MessageDatagram implements Serializable, Comparable<MessageDatagram> {
     private static final long serialVersionUID = -812254474476469252L;
     private final UUID id;
     private final UUID userId;
@@ -130,5 +130,10 @@ public class MessageDatagram implements Serializable {
         result = 31 * result + timestamp.hashCode();
         result = 31 * result + Arrays.hashCode(signature);
         return result;
+    }
+
+    @Override
+    public int compareTo(MessageDatagram o) {
+        return timestamp.compareTo(o.getTimestamp());
     }
 }
