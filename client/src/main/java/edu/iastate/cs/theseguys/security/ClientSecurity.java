@@ -8,9 +8,21 @@ import java.io.UnsupportedEncodingException;
 import java.security.*;
 
 @Component
+/**
+ * Class used for verifying a given message signature using a public key, message, and byte[] signature
+ * @author Alex
+ *
+ */
 public class ClientSecurity {
     private static final Logger log = LoggerFactory.getLogger(ClientSecurity.class);
 
+    /**
+     * Method used to check whether or not the message can be verified with the public key
+     * @param message
+     * @param sig
+     * @param publicKey
+     * @return true if verified
+     */
     public boolean verifySignature(String message, byte[] sig, PublicKey publicKey) {
         Signature signature;
         try {
