@@ -40,22 +40,45 @@ public class QMessageRecord extends EntityPathBase<MessageRecord> {
 
     public final ComparablePath<java.util.UUID> userId = createComparable("userId", java.util.UUID.class);
 
+    /**
+     * Creates a QMessageRecord with given variable
+     * @param variable
+     */
     public QMessageRecord(String variable) {
         this(MessageRecord.class, forVariable(variable), INITS);
     }
 
+    /**
+     * Creates a QMessageRecord with given path
+     * @param path
+     */
     public QMessageRecord(Path<? extends MessageRecord> path) {
         this(path.getType(), path.getMetadata(), path.getMetadata().isRoot() ? INITS : PathInits.DEFAULT);
     }
 
+    /**
+     * Creates QMessageRecord with given metadata
+     * @param metadata
+     */
     public QMessageRecord(PathMetadata<?> metadata) {
         this(metadata, metadata.isRoot() ? INITS : PathInits.DEFAULT);
     }
 
+    /**
+     * Creates QMessageRecord with given metadata and path initializations
+     * @param metadata
+     * @param inits
+     */
     public QMessageRecord(PathMetadata<?> metadata, PathInits inits) {
         this(MessageRecord.class, metadata, inits);
     }
 
+    /**
+     * Creates QMessageRecord with given type, metadata, and path initializations
+     * @param type
+     * @param metadata
+     * @param inits
+     */
     public QMessageRecord(Class<? extends MessageRecord> type, PathMetadata<?> metadata, PathInits inits) {
         super(type, metadata, inits);
         this.father = inits.isInitialized("father") ? new QMessageRecord(forProperty("father"), inits.get("father")) : null;
