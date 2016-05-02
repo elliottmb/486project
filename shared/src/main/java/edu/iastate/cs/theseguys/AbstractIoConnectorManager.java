@@ -8,9 +8,18 @@ import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
 
+/**
+ * Abstract class used for defining basic connection behavior
+ *
+ */
 public abstract class AbstractIoConnectorManager extends AbstractIoServiceManager<IoConnector, DemuxingIoHandler> {
     private static final Logger log = LoggerFactory.getLogger(AbstractIoConnectorManager.class);
 
+    /**
+     * Creates an AbstractIoConnectorManager with the given service and demuxingIoHandler
+     * @param service
+     * @param demuxingIoHandler
+     */
     public AbstractIoConnectorManager(IoConnector service, DemuxingIoHandler demuxingIoHandler) {
         super(service, demuxingIoHandler);
     }

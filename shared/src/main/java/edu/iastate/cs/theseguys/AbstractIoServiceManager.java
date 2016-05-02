@@ -11,11 +11,22 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Class that defines an IOService and IOHandler for messages along with some basic functions to use them
+ *
+ * @param <S>
+ * @param <I>
+ */
 public class AbstractIoServiceManager<S extends IoService, I extends IoHandler> {
     private static final Logger log = LoggerFactory.getLogger(AbstractIoServiceManager.class);
     private S service;
     private I ioHandler;
 
+    /**
+     * Creates an AbstractIoServiceManager with the given S service and I demuxingIoHandler
+     * @param service
+     * @param demuxingIoHandler
+     */
     public AbstractIoServiceManager(S service, I demuxingIoHandler) {
         this.service = service;
         this.ioHandler = demuxingIoHandler;
@@ -43,14 +54,27 @@ public class AbstractIoServiceManager<S extends IoService, I extends IoHandler> 
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Gets the IoSession of the given Long id
+     * @param id
+     * @return the IoSession with the given id
+     */
     public IoSession getSession(Long id) {
         return service.getManagedSessions().get(id);
     }
 
+    /**
+     * Gets the S service
+     * @return service
+     */
     public S getService() {
         return service;
     }
 
+    /**
+     * Gets the I ioHandler
+     * @return ioHandler
+     */
     public I getIoHandler() {
         return ioHandler;
     }
