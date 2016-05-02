@@ -16,6 +16,10 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Component
+/**
+ * Handler class for AcestorsOfRequest
+ *
+ */
 public class AncestorsOfRequestHandler implements MessageHandler<AncestorsOfRequest> {
     private static final Logger log = LoggerFactory.getLogger(AncestorsOfRequestHandler.class);
     @Autowired
@@ -23,6 +27,11 @@ public class AncestorsOfRequestHandler implements MessageHandler<AncestorsOfRequ
 
 
     @Override
+    /**
+     * Method that gets all ancestors of the requests children as MessageDatagrams
+     * @param session
+     * @param request
+     */
     public void handleMessage(IoSession session, AncestorsOfRequest request) throws Exception {
         log.info("Received " + request.toString());
 

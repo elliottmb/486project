@@ -1,9 +1,10 @@
 package edu.iastate.cs.theseguys.eventbus;
 
+/**
+ * Event class for Logouts
+ *
+ */
 public class LogoutEvent extends UserSessionEvent {
-    /**
-     *
-     */
     private static final long serialVersionUID = -9142396819822460233L;
     private final boolean confirmed;
 
@@ -17,6 +18,9 @@ public class LogoutEvent extends UserSessionEvent {
         this.confirmed = confirmed;
     }
 
+    /**
+     * Returns confirmed as a LogoutEvent string
+     */
     @Override
     public String toString() {
         return "LogoutEvent{" +
@@ -24,6 +28,10 @@ public class LogoutEvent extends UserSessionEvent {
                 '}';
     }
 
+    /**
+     * Returns boolean confirmed
+     * @return confirmed
+     */
     public boolean isConfirmed() {
         return confirmed;
     }

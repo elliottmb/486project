@@ -20,6 +20,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
+/**
+ * Manager class for Client
+ *
+ */
 public class ClientManager extends AbstractIoConnectorManager {
     private static final Logger log = LoggerFactory.getLogger(ClientManager.class);
 
@@ -40,17 +44,29 @@ public class ClientManager extends AbstractIoConnectorManager {
 
     private List<Peer> knownPeers;
 
-
+    /**
+     * Creates a ClientManager with a new NioSocketConnector and new ClientDemuxingIoHandler
+     * Sets knownPeers to a new LinkedList
+     */
     public ClientManager() {
         super(new NioSocketConnector(), new ClientDemuxingIoHandler());
 
         knownPeers = new LinkedList<>();
     }
 
+    /**
+     * Gets Peer list knownPeers
+     * @return
+     */
     public synchronized List<Peer> getKnownPeers() {
         return knownPeers;
     }
 
+    /**
+     * Method for connecting to all peers that are known but not connected.
+     * 
+     * @param peers
+     */
     public synchronized void setKnownPeers(List<Peer> peers) {
         knownPeers = peers;
 
@@ -77,6 +93,11 @@ public class ClientManager extends AbstractIoConnectorManager {
     }
 
     @PostConstruct
+    /**
+     * We set the handlers for our manager here.
+     * Sent message handlers are given NOOP since we don't take any action with them
+     * otherwise we set a defined handler to them
+     */
     private void prepareHandlers() {
         getIoHandler().addReceivedMessageHandler(NewMessageAnnouncement.class, newMessageAnnouncementHandler);
         getIoHandler().addSentMessageHandler(LatestMessageRequest.class, MessageHandler.NOOP);

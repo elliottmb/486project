@@ -18,6 +18,10 @@ import java.security.PublicKey;
 import java.util.UUID;
 
 @Component
+/**
+ * Manager class for Authority. Contains basic initialization/handler assignment
+ *
+ */
 public class AuthorityManager extends AbstractIoConnectorManager {
     private static final Logger log = LoggerFactory.getLogger(AuthorityManager.class);
 
@@ -38,15 +42,26 @@ public class AuthorityManager extends AbstractIoConnectorManager {
     @Autowired
     private ClientSecurity clientSecurity;
     
+    /**
+     * Creates a basic AuthorityManager with a new NioSocketConnector and DemuxingIoHandler
+     */
     public AuthorityManager() {
         super(new NioSocketConnector(), new DemuxingIoHandler());
     }
 
+    /**
+     * If userId is not null we return true
+     * @return userId != null
+     */
     public synchronized boolean isLoggedIn() {
         return userId != null;
     }
 
     @PostConstruct
+    /**
+     * We set all of our message handlers for sent/received. NOOP used when no action needs to be taken, otherwise
+     * an instance is given.
+     */
     private void prepareHandlers() {
         getIoHandler().addSentMessageHandler(LoginRequest.class, MessageHandler.NOOP);
         getIoHandler().addReceivedMessageHandler(LoginResponse.class, loginResponseHandler);
@@ -66,26 +81,53 @@ public class AuthorityManager extends AbstractIoConnectorManager {
     }
 
 
+    /**
+     * Method for verifying signature of a given MessageDatagram message
+     * @param message
+     * @return true if the message is verified
+     */
     public synchronized boolean verifySignature(MessageDatagram message) {
         return verifySignature(message.toSignable(), message.getSignature());
     }
 
+    /**
+     * Method for verifiying a signature of a given string message with given byte[] signature
+     * @param message
+     * @param sig
+     * @return true if the signature is verified
+     */
     public synchronized boolean verifySignature(String message, byte[] sig) {
         return clientSecurity.verifySignature(message, sig, getPublicKey());
     }
 
+    /**
+     * Gets the UUID userID
+     * @return userId
+     */
     public synchronized UUID getUserId() {
         return userId;
     }
 
+    /**
+     * Sets the UUID userId
+     * @param userId
+     */
     public synchronized void setUserId(UUID userId) {
         this.userId = userId;
     }
 
+    /**
+     * Gets the PublicKey publicKey
+     * @return publicKey
+     */
     public synchronized PublicKey getPublicKey() {
         return publicKey;
     }
 
+    /**
+     * Sets the PublicKey publicKey
+     * @param publicKey
+     */
     public synchronized void setPublicKey(PublicKey publicKey) {
         this.publicKey = publicKey;
     }

@@ -24,6 +24,10 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.stream.Collectors;
 
 @Component
+/**
+ * Manager class for Client Database
+ *
+ */
 public class DatabaseManager {
     private static final Logger log = LoggerFactory.getLogger(DatabaseManager.class);
     @Autowired
@@ -44,6 +48,10 @@ public class DatabaseManager {
 
     private Map<UUID, String> knownUsernames;
 
+    /**
+     * Creates a DatabaseManager which initializes toProcess, waitingOnResponse, ready, needAncestors, needParents
+     * knownUsernames, queueProcessor, processThread, and then starts the processThread
+     */
     public DatabaseManager() {
         toProcess = new ConcurrentLinkedDeque<>();
         waitingOnResponse = new LinkedHashMap<>();
@@ -57,11 +65,18 @@ public class DatabaseManager {
         processThread.start();
     }
 
+    /**
+     *  gets ConcurrentLinkedDeque toProcess
+     * @return toProcess
+     */
     public ConcurrentLinkedDeque<Pair<Long, MessageDatagram>> getToProcess() {
         return toProcess;
     }
 
 
+    /**
+     * Ends the queueProcessor and waits for the processThread to die
+     */
     public void dispose() {
         try {
             queueProcessor.terminate();
@@ -71,24 +86,47 @@ public class DatabaseManager {
         }
     }
 
+    /**
+     * Gets the MessageRepository repository
+     * @return repository
+     */
     public MessageRepository getRepository() {
         return repository;
     }
 
     // TODO: Abstract business logic around repository here, such that nothing has direct access to the repository
 
+    /**
+     * Gets the latest MessageRecord
+     * @return newest MessageRecord
+     */
     public MessageRecord getLatestMessage() {
         return repository.findFirstByOrderByTimestampDesc();
     }
 
+    /**
+     * Checks to see if the father of a MessageRecord m exists
+     * @param m
+     * @return true if exists
+     */
     public boolean hasFather(MessageRecord m) {
         return exists(m.getFather().getId());
     }
 
+    /**
+     * Checks to see if the mother of a MessageRecord m exists
+     * @param m
+     * @return true if exists
+     */
     public boolean hasMother(MessageRecord m) {
         return exists(m.getMother().getId());
     }
 
+    /**
+     * Checks to see if the given UUID id exists
+     * @param id
+     * @return true if exists
+     */
     public boolean exists(UUID id) {
         return getRepository().exists(id);
     }
@@ -371,10 +409,18 @@ public class DatabaseManager {
         return Iterables.getFirst(getRecordsByHowFruitless(), null);
     }
 
+    /**
+     * Gets a Map of knownUsernames
+     * @return knownUsernames
+     */
     public synchronized Map<UUID, String> getKnownUsernames() {
         return knownUsernames;
     }
 
+    /**
+     * Sets knownUsernames to given Map
+     * @param knownUsernames
+     */
     public synchronized void setKnownUsernames(Map<UUID, String> knownUsernames) {
         this.knownUsernames = knownUsernames;
     }

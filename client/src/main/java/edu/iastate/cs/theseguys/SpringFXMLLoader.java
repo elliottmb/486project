@@ -8,11 +8,22 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 
 @Component
+/**
+ * 
+ *Class used to load FXML content
+ *
+ */
 public class SpringFXMLLoader {
 
     @Autowired
     private ApplicationContext applicationContext;
 
+    /**
+     * Loads content based on given url
+     * @param url
+     * @return
+     * @throws IOException
+     */
     public <T> T load(String url) throws IOException {
         FXMLLoader fxmlLoader = new FXMLLoader();
         fxmlLoader.setControllerFactory(clazz -> applicationContext.getBean(clazz));

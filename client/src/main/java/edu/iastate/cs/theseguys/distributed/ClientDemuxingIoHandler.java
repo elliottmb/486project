@@ -9,12 +9,20 @@ import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
 
+/**
+ * Handler class for ClientDemuxingIo
+ *
+ */
 public class ClientDemuxingIoHandler extends ManagedDemuxingIoHandler {
 
     private static final Logger log = LoggerFactory.getLogger(ClientDemuxingIoHandler.class);
 
 
     @Override
+    /**
+     * Method writes a new LatestMessageRequest to the session and writes a new PeerConnectionRequest
+     * @param session
+     */
     public void sessionCreated(IoSession session) throws Exception {
         session.write(new LatestMessageRequest());
 

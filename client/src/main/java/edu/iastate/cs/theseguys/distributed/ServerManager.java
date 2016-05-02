@@ -18,6 +18,9 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 
 @Component
+/**
+ * Manager class for server. Defines handlers and initial port.
+ */
 public class ServerManager extends AbstractIoAcceptorManager {
     private static final Logger log = LoggerFactory.getLogger(ServerManager.class);
     private int port;
@@ -37,6 +40,10 @@ public class ServerManager extends AbstractIoAcceptorManager {
     @Autowired
     private AncestorsOfRequestHandler ancestorsOfRequestHandler;
 
+    /**
+     * Creates a ServerManager with a new NioSocketAcceptor and ServerDemuxingIoHandler.
+     * Sets port to 5050
+     */
     public ServerManager() {
         super(new NioSocketAcceptor(), new ServerDemuxingIoHandler());
 
@@ -44,6 +51,10 @@ public class ServerManager extends AbstractIoAcceptorManager {
     }
 
     @PostConstruct
+    /**
+     * We prepare our message handlers here. Sent messages don't need action taken so we set NOOP. Otherwise
+     * we give it a defined handler
+     */
     private void prepareHandlers() {
         getIoHandler().addSentMessageHandler(NewMessageAnnouncement.class, loggingMessageHandler);
         getIoHandler().addReceivedMessageHandler(LatestMessageRequest.class, latestMessageRequestHandler);
@@ -73,6 +84,11 @@ public class ServerManager extends AbstractIoAcceptorManager {
         getService().getFilterChain().addLast("codec", new ProtocolCodecFilter(new ObjectSerializationCodecFactory()));
     }
 
+    /**
+     * Method for trying to bind on a port. We cycle through the first 99 in attempt to connect
+     * @throws IOException
+     * @throws InterruptedException
+     */
     public void run() throws IOException, InterruptedException {
         // Try the first 99, catching the exceptions
         for (int i = 0; i < 100; i++) {

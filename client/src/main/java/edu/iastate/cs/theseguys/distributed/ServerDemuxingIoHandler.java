@@ -3,6 +3,10 @@ package edu.iastate.cs.theseguys.distributed;
 
 import org.apache.mina.core.session.IoSession;
 
+/**
+ * Handler for ServerDemuxingIo
+ *
+ */
 public class ServerDemuxingIoHandler extends ManagedDemuxingIoHandler {
 
     @Override
