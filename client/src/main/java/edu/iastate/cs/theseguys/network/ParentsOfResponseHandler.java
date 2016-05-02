@@ -10,6 +10,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
+/**
+ * Handler class for ParentsOfResponse
+ *
+ */
 public class ParentsOfResponseHandler implements MessageHandler<ParentsOfResponse> {
     private static final Logger log = LoggerFactory.getLogger(ParentsOfResponseHandler.class);
     @Autowired
@@ -17,6 +21,11 @@ public class ParentsOfResponseHandler implements MessageHandler<ParentsOfRespons
 
 
     @Override
+    /**
+     * For each Message in the responses parents we push the id, message pair into the queue
+     * @param session
+     * @param response
+     */
     public void handleMessage(IoSession session, ParentsOfResponse response) throws Exception {
         log.info("Received " + response.toString());
 

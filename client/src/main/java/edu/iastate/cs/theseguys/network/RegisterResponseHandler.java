@@ -10,12 +10,21 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
 @Component
+/**
+ * Handler for a RegisterResponse
+ *
+ */
 public class RegisterResponseHandler implements MessageHandler<RegisterResponse> {
     private static final Logger log = LoggerFactory.getLogger(RegisterResponseHandler.class);
     @Autowired
     ApplicationEventPublisher applicationEventPublisher;
 
     @Override
+    /**
+     * Method publishes a register event
+     * @param session
+     * @param response
+     */
     public void handleMessage(IoSession session, RegisterResponse message) throws Exception {
         log.info("Received " + message.toString());
 

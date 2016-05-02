@@ -13,6 +13,10 @@ import org.springframework.stereotype.Component;
 import java.net.InetSocketAddress;
 
 @Component
+/**
+ * Handler class for a PeerConnectionRequest
+ *
+ */
 public class PeerConnectionRequestHandler implements MessageHandler<PeerConnectionRequest> {
     private static final Logger log = LoggerFactory.getLogger(PeerConnectionRequestHandler.class);
 
@@ -20,6 +24,9 @@ public class PeerConnectionRequestHandler implements MessageHandler<PeerConnecti
     private ClientManager clientManager;
 
     @Override
+    /**
+     * Method connects us to peers only if we are not already connected to them.
+     */
     public void handleMessage(IoSession session, PeerConnectionRequest request) throws Exception {
         InetSocketAddress sessionAddress = (InetSocketAddress) session.getRemoteAddress();
 

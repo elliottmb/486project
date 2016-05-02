@@ -13,6 +13,10 @@ import org.springframework.stereotype.Component;
 import java.util.Arrays;
 
 @Component
+/**
+ * Handler class that handles verification by checking signature validity
+ *
+ */
 public class VerificationResponseHandler implements MessageHandler<VerificationResponse> {
     private static final Logger log = LoggerFactory.getLogger(VerificationResponseHandler.class);
     @Autowired
@@ -22,6 +26,11 @@ public class VerificationResponseHandler implements MessageHandler<VerificationR
     private AuthorityManager authorityManager;
 
     @Override
+    /**
+     * Method that handles the message. The message is taken from the response and verified
+     * @param session
+     * @param response
+     */
     public void handleMessage(IoSession session, VerificationResponse response) throws Exception {
         log.info("Received " + response.toString());
 

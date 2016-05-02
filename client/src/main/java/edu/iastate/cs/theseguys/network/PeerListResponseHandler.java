@@ -10,6 +10,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
+/**
+ * Handler for a PeerListResponse
+ *
+ */
 public class PeerListResponseHandler implements MessageHandler<PeerListResponse> {
     private static final Logger log = LoggerFactory.getLogger(PeerListResponseHandler.class);
 
@@ -19,6 +23,11 @@ public class PeerListResponseHandler implements MessageHandler<PeerListResponse>
     private ClientManager clientManager;
 
     @Override
+    /**
+     * Method that sets the peers of a client with the given response clients
+     * @param session
+     * @param response
+     */
     public void handleMessage(IoSession session, PeerListResponse response) throws Exception {
 
 
