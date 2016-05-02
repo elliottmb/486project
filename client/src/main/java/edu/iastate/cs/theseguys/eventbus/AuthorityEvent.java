@@ -2,6 +2,10 @@ package edu.iastate.cs.theseguys.eventbus;
 
 import org.springframework.context.ApplicationEvent;
 
+/**
+ * Abstract event class for dealing with Authority
+ *
+ */
 public abstract class AuthorityEvent extends ApplicationEvent {
     /**
      * Create a new ApplicationEvent.

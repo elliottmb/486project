@@ -14,6 +14,10 @@ import java.util.LinkedList;
 import java.util.Set;
 
 @Component
+/**
+ * Handler for ParentsOfRequest
+ *
+ */
 public class ParentsOfRequestHandler implements MessageHandler<ParentsOfRequest> {
     private static final Logger log = LoggerFactory.getLogger(ParentsOfRequestHandler.class);
     @Autowired
@@ -21,6 +25,11 @@ public class ParentsOfRequestHandler implements MessageHandler<ParentsOfRequest>
 
 
     @Override
+    /**
+     * Method gets the parents of the children in the request if and only if we do not already have it
+     * @param session
+     * @param request
+     */
     public void handleMessage(IoSession session, ParentsOfRequest request) throws Exception {
         log.info("Received " + request.toString());
 

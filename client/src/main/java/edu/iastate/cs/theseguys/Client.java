@@ -62,14 +62,15 @@ public class Client implements CommandLineRunner {
     private SpringFXMLLoader springFXMLLoader;
 
     public static void main(String[] args) {
-        log.info("I touch myself");
-
         new SpringApplicationBuilder(Client.class)
                 .headless(false)
                 .web(false)
                 .run(args);
     }
 
+    /**
+     * Method used to dispose (or clean up) all managers
+     */
     public void dispose() {
         clientManager.dispose();
         serverManager.dispose();
@@ -78,6 +79,15 @@ public class Client implements CommandLineRunner {
     }
 
     @Override
+    /**
+     * Entry point for client side of application.
+     * UI is initialized and ran. Connection is attempted with the central authority.
+     * Records are loaded. Messages can then be sent/received and new connections can be made/dropped.
+     * Logoff possible.
+     * 
+     * Can use the UI or use the command line to control client
+     * 
+     */
     public void run(String... args) throws Exception {
         final CountDownLatch latch = new CountDownLatch(1);
         SwingUtilities.invokeLater(
@@ -294,18 +304,34 @@ public class Client implements CommandLineRunner {
         dispose();
     }
 
+    /**
+     * Gets the AuthorityManager authorityManager
+     * @return authorityManager
+     */
     public AuthorityManager getAuthorityManager() {
         return authorityManager;
     }
 
+    /**
+     * Gets the ClientManager clientManager
+     * @return clientManager
+     */
     public ClientManager getClientManager() {
         return clientManager;
     }
 
+    /**
+     * Gets the ServerManager serverManager
+     * @return serverManager
+     */
     public ServerManager getServerManager() {
         return serverManager;
     }
 
+    /**
+     * Gets the DatabaseManager databaseManager
+     * @return databaseManager
+     */
     public DatabaseManager getDatabaseManager() {
         return databaseManager;
     }

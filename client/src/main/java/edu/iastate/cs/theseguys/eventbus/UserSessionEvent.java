@@ -2,7 +2,10 @@ package edu.iastate.cs.theseguys.eventbus;
 
 import org.springframework.context.ApplicationEvent;
 
-
+/**
+ * Abstract class defining some basic characteristics of user session events
+ *
+ */
 public abstract class UserSessionEvent extends ApplicationEvent {
     private static final long serialVersionUID = -1917186373047532040L;
 
@@ -15,6 +18,9 @@ public abstract class UserSessionEvent extends ApplicationEvent {
         super(source);
     }
 
+    /**
+     * Returns usersessionevent string
+     */
     @Override
     public String toString() {
         return "UserSessionEvent{}";

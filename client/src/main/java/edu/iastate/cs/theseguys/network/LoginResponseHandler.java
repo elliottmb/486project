@@ -11,6 +11,10 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
 @Component
+/**
+ * Handler for LoginResponse
+ *
+ */
 public class LoginResponseHandler implements MessageHandler<LoginResponse> {
     private static final Logger log = LoggerFactory.getLogger(LoginResponseHandler.class);
     @Autowired
@@ -21,6 +25,12 @@ public class LoginResponseHandler implements MessageHandler<LoginResponse> {
 
 
     @Override
+    /**
+     * If message has success we set the user id and public key of the user, write new peerlistrequest and userlistrequest
+     * and then publish the event
+     * @param session
+     * @param message
+     */
     public void handleMessage(IoSession session, LoginResponse message) throws Exception {
         log.info("Received " + message.toString());
 
