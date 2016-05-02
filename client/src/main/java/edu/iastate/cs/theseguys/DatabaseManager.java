@@ -93,6 +93,15 @@ public class DatabaseManager {
         return getRepository().exists(id);
     }
 
+    /**
+     * Our major processing logic. Using a concurrent deque, other threads add in valid messages
+     * to the queue, which is then processed through a number of steps. First, it verifies that we have
+     * the parent messages of the record. If not, we either request the parents or the close ancestors
+     * of the given message. The ancestor request is used when we are > 1 depth up without parents, such that
+     * if we have some message C with parents A and B, but we do not have the parents for either A or B, we request
+     * the ancestors (depth 5 up the graph) of A or B instead of naively and slowly working up the graph parents
+     * at a time. Once the graph leads back to known messages, such that it is connected, it is added to the database.
+     */
     public synchronized void processQueue() {
 
         if (ready.size() > 0) {
@@ -370,6 +379,9 @@ public class DatabaseManager {
         this.knownUsernames = knownUsernames;
     }
 
+    /**
+     * Thread to process data queue
+     */
     private class QueueProcessor implements Runnable {
 
         private volatile boolean running = true;
