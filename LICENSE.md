@@ -1,4 +1,4 @@
-Copyright (C) Elliott Butler, Jake Caitham, Alex Dana, Ryan Grier - All Rights Reserved
+Copyright (C) Elliott Butler, Jake Caithamer, Alex Dana, Ryan Grier - All Rights Reserved
 
 Unauthorized copying of this software and associated documentation files (the "Software"), via any medium is strictly
 prohibited. The Software is Proprietary and Confidential, and only made available for the sole purpose of acting
