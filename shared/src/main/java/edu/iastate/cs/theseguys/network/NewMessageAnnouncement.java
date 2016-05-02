@@ -9,10 +9,17 @@ public class NewMessageAnnouncement extends AbstractMessage {
     private static final long serialVersionUID = 8210961163089587206L;
     private MessageDatagram message;
 
+    /**
+     * Creates a new NewMessageAnnouncement with the given MessageDatagram message
+     * @param message
+     */
     public NewMessageAnnouncement(MessageDatagram message) {
         this.message = message;
     }
 
+    /**
+     * Returns the MessageDatagram message as a NewMessageAnnouncement string
+     */
     @Override
     public String toString() {
         return "NewMessageAnnouncement{" +
@@ -20,6 +27,10 @@ public class NewMessageAnnouncement extends AbstractMessage {
                 '}';
     }
 
+    /**
+     * Gets the MessageDatagram message
+     * @return
+     */
     public MessageDatagram getMessage() {
         return message;
     }

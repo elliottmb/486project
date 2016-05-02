@@ -27,9 +27,15 @@ public class VerificationResponseHandler implements MessageHandler<VerificationR
 
         MessageDatagram message = response.getMessage();
 
-        if (response.isValid() && authorityManager.verifySignature(message)) {
-            log.info("Signature is " + Arrays.toString(message.getSignature()));
-            databaseManager.getToProcess().push(new Pair<>(-1L, message));
+        log.info("Signature is " + Arrays.toString(message.getSignature()));
+        log.info("Authority manager pub key is " + authorityManager.getPublicKey());
+
+        if (response.isValid()) {
+            if (authorityManager.verifySignature(message)) {
+                databaseManager.getToProcess().push(new Pair<>(-1L, message));
+            } else {
+                log.warn("Signature failed to verify");
+            }
         } else {
             log.warn("Received an invalid message");
         }

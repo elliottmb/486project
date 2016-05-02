@@ -9,10 +9,16 @@ package edu.iastate.cs.theseguys.network;
 public class LatestMessageRequest extends AbstractMessage {
     private static final long serialVersionUID = 4698211896586557828L;
 
+    /**
+     * Creates a basic LatestMessageRequest
+     */
     public LatestMessageRequest() {
 
     }
 
+    /**
+     * Returns a LatestMessageRequest string
+     */
     @Override
     public String toString() {
         return "LatestMessageRequest";

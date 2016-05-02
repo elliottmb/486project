@@ -120,6 +120,9 @@ public class Client implements CommandLineRunner {
         ConnectFuture authorityFuture = null;
         for (int i = 0; i < 5; i++) {
             try {
+
+                // Switch the next two lines for local variant.
+                //authorityFuture = authorityManager.connect(new InetSocketAddress(9090));
                 authorityFuture = authorityManager.connect(new InetSocketAddress("162.243.102.180", 9090));
                 authorityFuture.awaitUninterruptibly();
                 if (authorityFuture.getSession().isConnected()) {

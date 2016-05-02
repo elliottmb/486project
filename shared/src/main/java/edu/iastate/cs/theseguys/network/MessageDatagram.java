@@ -17,6 +17,16 @@ public class MessageDatagram implements Serializable, Comparable<MessageDatagram
     private final Timestamp timestamp;
     private final byte[] signature;
 
+    /**
+     * Creats a MessageDatagram with the given id, userId, fatherId, motherId, messageBody, timestamp, and signature
+     * @param id
+     * @param userId
+     * @param fatherId
+     * @param motherId
+     * @param messageBody
+     * @param timestamp
+     * @param signature
+     */
     public MessageDatagram(UUID id, UUID userId, UUID fatherId, UUID motherId, String messageBody, Timestamp timestamp, byte[] signature) {
         this.id = id;
         this.userId = userId;
@@ -43,6 +53,10 @@ public class MessageDatagram implements Serializable, Comparable<MessageDatagram
         this.signature = newSignature;
     }
 
+     /**
+      * Creates a MessageDatagram out of the given MessageRecord messageRecord
+      * @param messageRecord
+      */
     public MessageDatagram(MessageRecord messageRecord) {
         this.id = messageRecord.getId();
         this.userId = messageRecord.getUserId();
@@ -53,6 +67,9 @@ public class MessageDatagram implements Serializable, Comparable<MessageDatagram
         this.signature = messageRecord.getSignature();
     }
 
+    /**
+     * Returns the id, userId, fatherId, motherId, messageBody, and timestamp as a MessageDatagram string
+     */
     @Override
     public String toString() {
         return "MessageDatagram{" +
@@ -65,6 +82,10 @@ public class MessageDatagram implements Serializable, Comparable<MessageDatagram
                 '}';
     }
 
+    /**
+     * Returns the id, userId, fatherId, motherId, messageBody, and timestamp as a signable string
+     * @return
+     */
     public String toSignable() {
         return "{id=" + id +
                 ", userId=" + userId +
@@ -75,34 +96,67 @@ public class MessageDatagram implements Serializable, Comparable<MessageDatagram
                 '}';
     }
 
+    /**
+     * gets the UUID id
+     * @return id
+     */
     public UUID getId() {
         return id;
     }
 
+    /**
+     * Gets the UUID userId
+     * @return userId
+     */
     public UUID getUserId() {
         return userId;
     }
 
+    /**
+     * Gets the UUID fatherId
+     * @return fatherId
+     */
     public UUID getFatherId() {
         return fatherId;
     }
 
+    /**
+     * Gets the UUID motherId
+     * @return motherId
+     */
     public UUID getMotherId() {
         return motherId;
     }
 
+    /**
+     * Gets the String messageBody
+     * @return messageBody
+     */
     public String getMessageBody() {
         return messageBody;
     }
 
+    /**
+     * Gets the Timestamp timestamp
+     * @return timestamp
+     */
     public Timestamp getTimestamp() {
         return timestamp;
     }
 
+    /**
+     * Gets the byte[] signature
+     * @return signature
+     */
     public byte[] getSignature() {
         return signature;
     }
 
+    /**
+     * Overriden equals for our MessageDatagram. Compares id, userId, fatherId, motherId, messageBody, timestamp, and signature
+     *
+     *@return whether or not the MessageDatagrams are equal
+     */
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -120,6 +174,12 @@ public class MessageDatagram implements Serializable, Comparable<MessageDatagram
 
     }
 
+    /**
+     * Overriden hashCode method. Hashcode is generated using the userId, fatherId, 
+     * motherId, messageBody, timestamp ,and signature
+     * 
+     * @return the int hashcode result
+     */
     @Override
     public int hashCode() {
         int result = id.hashCode();
@@ -132,6 +192,11 @@ public class MessageDatagram implements Serializable, Comparable<MessageDatagram
         return result;
     }
 
+    /**
+     * Overriden compareTo. We use the timestamp for our compareTo
+     * 
+     * @return the result of Timestamp.compareTo
+     */
     @Override
     public int compareTo(MessageDatagram o) {
         return timestamp.compareTo(o.getTimestamp());
