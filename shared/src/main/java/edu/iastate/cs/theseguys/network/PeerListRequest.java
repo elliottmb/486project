@@ -1,7 +1,7 @@
 package edu.iastate.cs.theseguys.network;
 
 /**
- * Used to request a list of current peers
+ * Sent by a client to the authority to request a list of all other currently active peers
  *
  */
 public class PeerListRequest extends AbstractMessage {

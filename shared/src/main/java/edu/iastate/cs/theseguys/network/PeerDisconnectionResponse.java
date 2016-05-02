@@ -1,7 +1,7 @@
 package edu.iastate.cs.theseguys.network;
 
 /**
- * AbstractMessage extension used to respond to a PeerDisconnectRequest
+ * AbstractMessage extension used by clients to respond to a PeerDisconnectRequest
  * 
  */
 public class PeerDisconnectionResponse extends AbstractMessage{

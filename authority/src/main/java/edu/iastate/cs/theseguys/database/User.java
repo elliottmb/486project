@@ -6,6 +6,10 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 import java.util.UUID;
 
+/**
+ * Definition of a User in the authority's Users database
+ *
+ */
 @Entity
 @Table(name = "users")
 public class User {

@@ -12,6 +12,10 @@ import org.springframework.stereotype.Component;
 
 import java.util.UUID;
 
+/**
+ * Handle RegisterRequests sent by connected clients
+ *
+ */
 @Component
 public class RegisterRequestHandler implements MessageHandler<RegisterRequest> {
     private static final Logger log = LoggerFactory.getLogger(RegisterRequestHandler.class);
@@ -19,6 +23,13 @@ public class RegisterRequestHandler implements MessageHandler<RegisterRequest> {
     @Autowired
     private AuthorityClientManager manager;
 
+    /**
+     * Handle the given RegisterRequest sent over the given session.
+     * If the request contains a valid username and password, create a new 
+     * row in the Users database and respond with a successful RegisterResponse.
+     * If the request contains invalid or previously taken username/password,
+     * write a failed RegisterResponse to the session
+     */
     @Override
     public void handleMessage(IoSession session, RegisterRequest request) throws Exception {
         log.info("Received a register request:" + request.getUsername() + " " + request.getPassword());
@@ -43,12 +54,6 @@ public class RegisterRequestHandler implements MessageHandler<RegisterRequest> {
         manager.getDatabaseManager().insertUser(newUser);
 
         session.write(new RegisterResponse(true, "Account creation successful"));
-
-
-        log.info("Users currently in database: ");
-        for (User user : manager.getDatabaseManager().getRepository().findAll()) {
-            log.info(user.toString());
-        }
     }
 }
 

@@ -1,7 +1,7 @@
 package edu.iastate.cs.theseguys.network;
 
 /**
- * AbstractMessage extension used to request connection to a peer
+ * AbstractMessage extension used by clients to request a connection to another client in the network
  * 
  */
 public class PeerConnectionRequest extends AbstractMessage {

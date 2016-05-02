@@ -1,12 +1,13 @@
 package edu.iastate.cs.theseguys.network;
 
 /**
- * AbstractMessage extension used in response to a LogoutRequest
+ * AbstractMessage extension used by the authority in response to a LogoutRequest from a connected client
  *
  */
 public class LogoutResponse extends AbstractMessage {
     private static final long serialVersionUID = -510932825868392337L;
-    private boolean confirmed;
+    //whether the authority confirmed the LogoutRequest which spawned this LogoutResponse
+    private boolean confirmed;  
 
     /**
      * Creates a LogoutResponse with the given confirmed boolean

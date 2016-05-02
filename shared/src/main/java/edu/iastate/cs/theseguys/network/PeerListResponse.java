@@ -5,7 +5,7 @@ import edu.iastate.cs.theseguys.model.Peer;
 import java.util.List;
 
 /**
- * Response class when a list of peers is requested
+ * Sent by the authority to the client, contains a list of all clients currently connected to the authority
  *
  */
 public class PeerListResponse extends AbstractMessage {

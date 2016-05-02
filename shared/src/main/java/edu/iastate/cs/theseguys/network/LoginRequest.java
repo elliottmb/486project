@@ -1,7 +1,7 @@
 package edu.iastate.cs.theseguys.network;
 
 /**
- * AbstractMessage extension used to request a login
+ * AbstractMessage extension used to request a login from the authority
  */
 public class LoginRequest extends AbstractMessage {
     private static final long serialVersionUID = -100458915682459958L;

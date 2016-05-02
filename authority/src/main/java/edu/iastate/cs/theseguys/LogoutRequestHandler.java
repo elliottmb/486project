@@ -10,7 +10,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-
+/**
+ * Handle LogoutRequests sent by connected clients
+ *
+ */
 @Component
 public class LogoutRequestHandler implements MessageHandler<LogoutRequest> {
 
@@ -18,6 +21,11 @@ public class LogoutRequestHandler implements MessageHandler<LogoutRequest> {
     @Autowired
     private AuthorityClientManager manager;
 
+    /**
+     * Handle LogoutRequests from the given session.
+     * Remove the session from the list of logged in clients
+     * and write a LogoutResponse to the client confirming the logout
+     */
     @Override
     public void handleMessage(IoSession session, LogoutRequest request) throws Exception {
     	

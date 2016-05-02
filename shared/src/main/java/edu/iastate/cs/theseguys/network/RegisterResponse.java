@@ -1,7 +1,7 @@
 package edu.iastate.cs.theseguys.network;
 
 /**
- * AbstractMessage extension used to respond to a RegisterRequest
+ * Message sent from the authority to a client with the results of a RegisterRequest
  *
  */
 public class RegisterResponse extends AbstractMessage {

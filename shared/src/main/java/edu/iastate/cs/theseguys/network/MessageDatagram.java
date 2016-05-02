@@ -7,6 +7,10 @@ import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.UUID;
 
+/**
+ * Networking class used to encapsulate a single Message object
+ *
+ */
 public class MessageDatagram implements Serializable, Comparable<MessageDatagram> {
     private static final long serialVersionUID = -812254474476469252L;
     private final UUID id;
@@ -18,7 +22,7 @@ public class MessageDatagram implements Serializable, Comparable<MessageDatagram
     private final byte[] signature;
 
     /**
-     * Creats a MessageDatagram with the given id, userId, fatherId, motherId, messageBody, timestamp, and signature
+     * Creates a MessageDatagram with the given id, userId, fatherId, motherId, messageBody, timestamp, and signature
      * @param id
      * @param userId
      * @param fatherId

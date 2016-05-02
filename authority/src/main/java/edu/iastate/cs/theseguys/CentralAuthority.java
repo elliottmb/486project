@@ -18,7 +18,8 @@ import java.io.IOException;
  * from a Client before it can send that MessageRecord to other Clients.
  * Additionally, maintains connections to all currently operating
  * Clients, so that new Clients know where to connect to in order to
- * build up their peer network.
+ * build up their peer network, and manages a database of registered
+ * users of the system. 
  */
 
 @Configuration

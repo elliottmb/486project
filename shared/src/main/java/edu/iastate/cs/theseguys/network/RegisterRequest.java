@@ -1,7 +1,7 @@
 package edu.iastate.cs.theseguys.network;
 
 /**
- * AbstractMessage extension used for requesting registration of a new user
+ * Request sent by a client to the authority to register a new user
  *
  */
 public class RegisterRequest extends AbstractMessage {

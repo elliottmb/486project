@@ -1,7 +1,7 @@
 package edu.iastate.cs.theseguys.network;
 
 /**
- * AbstractMessage extension used to request a logout
+ * AbstractMessage extension used by a client to request a logout from the authority
  *
  */
 public class LogoutRequest extends AbstractMessage {

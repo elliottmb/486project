@@ -46,10 +46,6 @@ public class DatabaseManager {
 
     /**
      * Returns the user with the specified username and password if it exists, or null otherwise
-     *
-     * @param username
-     * @param password
-     * @return
      */
     public User authenticateUser(String username, String password) {
         User user = repository.findByUsername(username);
@@ -59,6 +55,9 @@ public class DatabaseManager {
         return null;
     }
 
+    /**
+     * @return Returns a map of all unique UserIds to their respective usernames
+     */
     public Map<UUID, String> getAllUsers() {
         return StreamSupport
                 .stream(

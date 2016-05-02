@@ -1,7 +1,7 @@
 package edu.iastate.cs.theseguys.network;
 
 /**
- * AbstractMessage extension used to request a list of current users
+ * AbstractMessage extension used by client to request a list of current users from the authority
  *
  */
 public class UserListRequest extends AbstractMessage {

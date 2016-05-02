@@ -5,6 +5,7 @@ import java.util.UUID;
 
 /**
  * AbstractMessage extension used to respond to a UserListRequest
+ * Sent by authority to a client, contains a list of all registered users
  *
  */
 public class UserListResponse extends AbstractMessage {

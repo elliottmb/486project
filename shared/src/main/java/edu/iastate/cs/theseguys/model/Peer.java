@@ -3,7 +3,7 @@ package edu.iastate.cs.theseguys.model;
 import java.io.Serializable;
 
 /**
- * Class representing a Peer in the network
+ * Class representing a Peer (connected client) in the network
  *
  */
 public class Peer implements Serializable {
@@ -22,7 +22,7 @@ public class Peer implements Serializable {
     }
 
     /**
-     * Gets the int port
+     * Gets the port number of this Peer
      * @return port
      */
     public int getPort() {
@@ -30,7 +30,7 @@ public class Peer implements Serializable {
     }
 
     /**
-     * Sets the port with the given int port
+     * Sets the port with the given port number
      * @param port
      */
     public void setPort(int port) {

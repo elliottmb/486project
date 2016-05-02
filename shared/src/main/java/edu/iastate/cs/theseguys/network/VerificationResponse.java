@@ -1,8 +1,7 @@
 package edu.iastate.cs.theseguys.network;
 
 /**
- * Request the direct parents of the provided list of
- * child Messages.
+ * Sent by the authority to a client, contains the result of the authority verification of the included message
  */
 public class VerificationResponse extends AbstractMessage {
     private static final long serialVersionUID = -7719439373013433851L;

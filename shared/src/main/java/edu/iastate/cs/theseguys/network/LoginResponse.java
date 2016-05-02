@@ -4,7 +4,7 @@ import java.security.PublicKey;
 import java.util.UUID;
 
 /**
- * AbstractMessage extension used to respond to a LoginRequest
+ * AbstractMessage extension used by the authority to respond to a LoginRequest
  *
  */
 public class LoginResponse extends AbstractMessage {

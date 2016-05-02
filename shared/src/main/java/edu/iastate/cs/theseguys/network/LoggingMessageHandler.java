@@ -7,7 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 /**
- * Class used primarily for testing
+ * Class used primarily for testing.  Handles Messages but does nothing but print the message content to the log
  */
 @Component
 public class LoggingMessageHandler implements MessageHandler<AbstractMessage> {

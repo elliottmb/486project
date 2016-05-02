@@ -13,16 +13,26 @@ import org.springframework.stereotype.Component;
 
 import java.security.PrivateKey;
 
+/**
+ * Handle VerificationRequests from connected clients
+ *
+ */
 @Component
 public class VerificationRequestHandler implements MessageHandler<VerificationRequest> {
     private static final Logger log = LoggerFactory.getLogger(VerificationRequestHandler.class);
     @Autowired
     private AuthorityClientManager manager;
 
+    /**
+     * Handle the given VerificationRequest from the provided IoSession
+     * Check if the VerificationRequest is from a verified active session.
+     * If it is, sign the message using the authority's private key and 
+     * write the signed message back to the session in a VerificationResponse
+     * If the message is not from a verified active session, write the message
+     * back to the session in a failed VerificationResponse
+     */
     @Override
     public void handleMessage(IoSession session, VerificationRequest request) throws Exception {
-        //I guess we need to encode this message using the CentralAuthority's private key
-        //and send the client a response containing that value
         log.info("Received: " + request);
 
         MessageDatagram message = request.getMessage();
