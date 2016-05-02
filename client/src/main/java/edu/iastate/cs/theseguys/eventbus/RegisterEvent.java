@@ -1,5 +1,9 @@
 package edu.iastate.cs.theseguys.eventbus;
 
+/**
+ * Event class used when a register occurs
+ *
+ */
 public class RegisterEvent extends UserSessionEvent {
     private final boolean successful;
     private final String message;
@@ -15,10 +19,18 @@ public class RegisterEvent extends UserSessionEvent {
         this.message = message;
     }
 
+    /**
+     * Gets the successful boolean
+     * @return successful
+     */
     public boolean isSuccessful() {
         return successful;
     }
 
+    /**
+     * Gets the string message
+     * @return message
+     */
     public String getMessage() {
         return message;
     }

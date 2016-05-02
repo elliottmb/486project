@@ -10,6 +10,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
+/**
+ * Handler for AncestorsOfResponse
+ *
+ */
 public class AncestorsOfResponseHandler implements MessageHandler<AncestorsOfResponse> {
     private static final Logger log = LoggerFactory.getLogger(AncestorsOfResponseHandler.class);
     @Autowired
@@ -17,6 +21,11 @@ public class AncestorsOfResponseHandler implements MessageHandler<AncestorsOfRes
 
 
     @Override
+    /**
+     * For each MessageDatagram in the responses ancestors we push the id, messageDatagram pair to the queue to be processed
+     * @param session
+     * @param response
+     */
     public void handleMessage(IoSession session, AncestorsOfResponse response) throws Exception {
         log.info("Received " + response.toString());
 

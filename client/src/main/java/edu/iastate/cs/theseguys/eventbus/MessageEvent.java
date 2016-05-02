@@ -2,7 +2,10 @@ package edu.iastate.cs.theseguys.eventbus;
 
 import org.springframework.context.ApplicationEvent;
 
-
+/**
+ * Abstract event class for dealing with message events
+ *
+ */
 public abstract class MessageEvent extends ApplicationEvent {
     /**
      * Create a new ApplicationEvent.
@@ -13,6 +16,9 @@ public abstract class MessageEvent extends ApplicationEvent {
         super(source);
     }
 
+    /**
+     * Returns the Message event string
+     */
     @Override
     public String toString() {
         return "MessageEvent{}";

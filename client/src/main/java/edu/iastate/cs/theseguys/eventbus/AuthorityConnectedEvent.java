@@ -1,5 +1,9 @@
 package edu.iastate.cs.theseguys.eventbus;
 
+/**
+ * Event class for when an Authority is connected
+ *
+ */
 public class AuthorityConnectedEvent extends AuthorityEvent {
     /**
      * Create a new ApplicationEvent.

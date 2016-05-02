@@ -12,6 +12,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
+/**
+ * Handler for LatestMessageResponse
+ *
+ */
 public class LatestMessageResponseHandler implements MessageHandler<LatestMessageResponse> {
     private static final Logger log = LoggerFactory.getLogger(LatestMessageResponseHandler.class);
     @Autowired
@@ -21,6 +25,11 @@ public class LatestMessageResponseHandler implements MessageHandler<LatestMessag
 
 
     @Override
+    /**
+     * Method that gets the message from the response and verifies it. If verified we push the session id and message to the ToProcess queue
+     * @param session
+     * @param response
+     */
     public void handleMessage(IoSession session, LatestMessageResponse response) throws Exception {
         log.info("Received " + response.toString());
 

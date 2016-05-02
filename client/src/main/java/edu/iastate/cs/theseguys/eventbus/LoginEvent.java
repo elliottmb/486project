@@ -1,5 +1,9 @@
 package edu.iastate.cs.theseguys.eventbus;
 
+/**
+ * Event class for login events
+ *
+ */
 public class LoginEvent extends UserSessionEvent {
     private final boolean successful;
 
@@ -13,6 +17,9 @@ public class LoginEvent extends UserSessionEvent {
         this.successful = successful;
     }
 
+    /**
+     * Returns successful as part of a LoginEvent string
+     */
     @Override
     public String toString() {
         return "LoginEvent{" +
@@ -20,6 +27,10 @@ public class LoginEvent extends UserSessionEvent {
                 '}';
     }
 
+    /**
+     * Gets boolean successful
+     * @return successful
+     */
     public boolean isSuccessful() {
         return successful;
     }

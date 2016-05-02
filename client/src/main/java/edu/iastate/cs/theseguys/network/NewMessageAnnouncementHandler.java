@@ -11,6 +11,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
+/**
+ * Handler for NewMessageAnnouncement
+ *
+ */
 public class NewMessageAnnouncementHandler implements MessageHandler<NewMessageAnnouncement> {
     private static final Logger log = LoggerFactory.getLogger(NewMessageAnnouncementHandler.class);
     @Autowired
@@ -20,6 +24,11 @@ public class NewMessageAnnouncementHandler implements MessageHandler<NewMessageA
 
 
     @Override
+    /**
+     * Method that verifies the announcements message signature and then pushes it to the queue
+     * @param session
+     * @param announcement
+     */
     public void handleMessage(IoSession session, NewMessageAnnouncement announcement) throws Exception {
         log.info("Received " + announcement.toString());
 

@@ -13,6 +13,10 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
 @Component
+/**
+ * Handler for LogoutResponse
+ *
+ */
 public class LogoutResponseHandler implements MessageHandler<LogoutResponse> {
     private static final Logger log = LoggerFactory.getLogger(LogoutResponseHandler.class);
 
@@ -28,6 +32,12 @@ public class LogoutResponseHandler implements MessageHandler<LogoutResponse> {
     ApplicationEventPublisher applicationEventPublisher;
 
     @Override
+    /**
+     * If the response is confirmed we clear out the userId and the public key. 
+     * We then close off all connections of the client and server manager and publish the event
+     * @param session
+     * @param response
+     */
     public void handleMessage(IoSession session, LogoutResponse response) throws Exception {
         log.info("Received " + response.toString());
 
