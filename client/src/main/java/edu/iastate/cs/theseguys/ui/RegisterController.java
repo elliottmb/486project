@@ -42,6 +42,11 @@ public class RegisterController implements ApplicationListener<UserSessionEvent>
     @Autowired
     private Client client;
 
+    /**
+     * Trys to register given user with given password. Sets error text if passwords do not match.
+     * @param event
+     * @throws IOException
+     */
     @FXML
     protected void register(ActionEvent event) throws IOException {
         if (password.getText().equals(passwordCheck.getText())) {
@@ -51,11 +56,21 @@ public class RegisterController implements ApplicationListener<UserSessionEvent>
         }
     }
 
+    /**
+     * Cancels the registeration and goes back to login.
+     * @param event
+     * @throws IOException
+     */
     @FXML
     protected void cancel(ActionEvent event) throws IOException {
         changeScreens("/fxml/login.fxml");
     }
 
+    /**
+     * Changes javafx screens to the given screen.
+     * @param screen
+     * @throws IOException
+     */
     private void changeScreens(String screen) throws IOException {
         Stage stage = (Stage) username.getScene().getWindow();
         Parent root = springFXMLLoader.load(screen);
@@ -64,6 +79,9 @@ public class RegisterController implements ApplicationListener<UserSessionEvent>
         stage.show();
     }
 
+    /**
+     * Event Listener which controls what happens when it receives different types of events from the others.
+     */
     @Override
     public void onApplicationEvent(UserSessionEvent event) {
         if (event instanceof RegisterEvent) {

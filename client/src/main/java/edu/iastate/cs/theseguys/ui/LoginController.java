@@ -42,6 +42,11 @@ public class LoginController implements ApplicationListener<UserSessionEvent> {
     @Autowired
     private Client client;
 
+    /**
+     * Controls what happens when a given button is pressed. Controls the login and the register buttons.
+     * @param event
+     * @throws IOException
+     */
     @FXML
     protected void button(ActionEvent event) throws IOException {
         if (event.getSource() instanceof Button) {
@@ -59,6 +64,11 @@ public class LoginController implements ApplicationListener<UserSessionEvent> {
         }
     }
 
+    /**
+     * Changes javafx screens to the given screen.
+     * @param screen
+     * @throws IOException
+     */
     private void changeScreens(String screen) throws IOException {
         Stage stage = (Stage) username.getScene().getWindow();
         Parent root = springFXMLLoader.load(screen);
@@ -67,6 +77,9 @@ public class LoginController implements ApplicationListener<UserSessionEvent> {
         stage.show();
     }
 
+    /**
+     * Event Listener which controls what happens when it receives different types of events from the others.
+     */
     @Override
     public void onApplicationEvent(UserSessionEvent event) {
         if (event instanceof LoginEvent) {

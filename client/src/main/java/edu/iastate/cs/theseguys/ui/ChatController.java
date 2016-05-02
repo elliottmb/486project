@@ -59,6 +59,9 @@ public class ChatController implements ApplicationListener<ApplicationEvent> {
 
     private SortedList<MessageDatagram> sortedList;
 
+    /**
+     * General Constructor
+     */
     public ChatController() {
         chatMessages = FXCollections.observableArrayList();
         sortedList = new SortedList<>(chatMessages);
@@ -66,7 +69,11 @@ public class ChatController implements ApplicationListener<ApplicationEvent> {
                 (o1, o2) -> o1.getTimestamp().compareTo(o2.getTimestamp())
         );
     }
+    
 
+    /**
+     * Sets up the chat area to update when new messages are recieved.
+     */
     @FXML
     protected void initialize() {
         chat.setCellFactory(
@@ -111,10 +118,12 @@ public class ChatController implements ApplicationListener<ApplicationEvent> {
                 .map(MessageRecord::toDatagram)
                 .collect(Collectors.toCollection(() -> chatMessages));
         submit.setDefaultButton(true);
-
-        // TODO Show users
     }
 
+    /**
+     * Sends user input to other clients.
+     * @param event
+     */
     @FXML
     protected void submitText(ActionEvent event) {
         if (!input.getText().equals("")) {
@@ -128,11 +137,20 @@ public class ChatController implements ApplicationListener<ApplicationEvent> {
         input.setText("");
     }
 
+    /**
+     * Sends a logout request to try to logout.
+     * @param event
+     */
     @FXML
     protected void logout(ActionEvent event) {
         client.getAuthorityManager().write(new LogoutRequest());
     }
 
+    /**
+     * Changes javafx screens to the given screen.
+     * @param screen to change to
+     * @throws IOException
+     */
     private void changeScreens(String screen) throws IOException {
         Stage stage = (Stage) chat.getScene().getWindow();
         Parent root = springFXMLLoader.load(screen);
@@ -141,6 +159,9 @@ public class ChatController implements ApplicationListener<ApplicationEvent> {
         stage.show();
     }
 
+    /**
+     * Event Listener which controls what happens when it receives different types of events from the others.
+     */
     @Override
     public void onApplicationEvent(ApplicationEvent event) {
         if (event instanceof NewMessageEvent) {

@@ -32,16 +32,27 @@ public class ConnectionController implements ApplicationListener<AuthorityEvent>
     @Autowired
     private Client client;
 
+    /**
+     * Shows the retry button.
+     */
     protected void showButton() {
         retry.setOpacity(1);
         retry.setDisable(false);
     }
 
+    /**
+     * Method to try to reconnect.
+     * @param event
+     * @throws IOException
+     */
     @FXML
     protected void reconnect(ActionEvent event) throws IOException {
 
     }
 
+    /**
+     * Event Listener which controls what happens when it receives different types of events from the others.
+     */
     @Override
     public void onApplicationEvent(AuthorityEvent event) {
         if (event instanceof AuthorityConnectedEvent) {
@@ -62,13 +73,11 @@ public class ConnectionController implements ApplicationListener<AuthorityEvent>
             );
         } else {
             if (event instanceof AuthorityConnectionFailedEvent) {
-                //TODO: Show retry button and such
             	retry.setDisable(false);
             	retry.setOpacity(1.0);
                 AuthorityConnectionFailedEvent authorityConnectionFailedEvent = (AuthorityConnectionFailedEvent) event;
 
             }
-            // TODO: Not sure if AuthorityDisconnectedEvent would ever trigger while on this screen.
         }
     }
 }

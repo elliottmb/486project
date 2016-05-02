@@ -6,7 +6,6 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
-//Need Login, register and chat screens
 
 public class ClientUI extends Application {
 
