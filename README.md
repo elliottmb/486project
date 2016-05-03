@@ -1,5 +1,8 @@
 # 486project
 
+# License
+Please refer to LICENSE.md
+
 ## How to compile
 This project uses Gradle to compile. It is broken up into three subprojects: Authority, Client, Shared.
 
